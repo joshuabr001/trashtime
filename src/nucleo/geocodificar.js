@@ -44,8 +44,7 @@ export async function geocodificarEndereco(endereco) {
         housenumber: endereco.numero,
         city: endereco.cidade,
         countrycode: 'BR',
-        limit: '10',
-        lang: 'pt'
+        limit: '10'
     });
     const resposta = await fetch(`https://photon.komoot.io/structured?${params}`);
     if (!resposta.ok) throw new Error('A busca no mapa está indisponível. Tente novamente em instantes.');
