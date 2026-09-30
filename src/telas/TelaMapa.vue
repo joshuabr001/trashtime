@@ -12,7 +12,7 @@
         </header>
 
         <div class="faixa faixa--status">
-            <div class="cartoes-status">
+            <div class="cartoes-status" :class="{ 'cartoes-status--cep': estado.localCep }">
                 <div class="cartao-status">
                     <div class="cartao-status__icone">
                         <svg class="icone" width="21" height="21"><use href="#ic-caminhao" /></svg>
@@ -43,23 +43,23 @@
             <MapaReal v-if="estado.localCep || rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal && !estado.localCep" :instante="agora" @atualizar="receberAtualizacao" />
             <MapaBelem v-else />
 
-            <div v-if="estado.localCep" class="cartao">
-                <p class="linha__titulo">Próxima coleta</p>
-                <p v-if="regiaoCep" class="linha__texto">{{ proxima.dia }} · {{ proxima.hora }}. Calendário ilustrativo de {{ REGIOES[regiaoCep].nome }}.</p>
-                <p v-else class="linha__texto">Ainda não há dias e horários cadastrados para {{ estado.localCep.bairro }}. Não é possível prever a coleta neste endereço.</p>
+            <div v-if="estado.localCep" class="cartao cartao-mapa">
+                <h2 class="cartao-mapa__titulo">Próxima coleta</h2>
+                <p v-if="regiaoCep" class="cartao-mapa__texto">{{ proxima.dia }} · {{ proxima.hora }}. Calendário ilustrativo de {{ REGIOES[regiaoCep].nome }}.</p>
+                <p v-else class="cartao-mapa__texto">Ainda não há dias e horários cadastrados para {{ estado.localCep.bairro }}. Não é possível prever a coleta neste endereço.</p>
             </div>
 
-            <div v-if="estado.localCep" class="cartao">
-                <p class="linha__titulo">Caminhões em rota · demonstração</p>
-                <p class="linha__texto">Próxima passagem simulada: {{ proximoSimulado.nome }} em cerca de {{ proximoSimulado.minutosAtePassagem }} min.</p>
-                <div class="linha" v-for="caminhao in caminhoesCep" :key="caminhao.id">
-                    <div>
+            <div v-if="estado.localCep" class="cartao cartao-mapa">
+                <h2 class="cartao-mapa__titulo">Caminhões no mapa · demonstração</h2>
+                <p class="cartao-mapa__texto">Próxima passagem simulada: {{ proximoSimulado.nome }} em cerca de {{ proximoSimulado.minutosAtePassagem }} min.</p>
+                <div class="cartao-mapa__veiculo" v-for="caminhao in caminhoesCep" :key="caminhao.id">
+                    <div class="cartao-mapa__veiculo-info">
                         <p class="linha__titulo">{{ caminhao.nome }}</p>
                         <p class="linha__texto">Aproximadamente {{ caminhao.distanciaM }} m do ponto cadastrado</p>
                     </div>
-                    <span class="marca marca--comum">{{ caminhao.minutosAtePassagem }} min</span>
+                    <span class="marca marca--comum cartao-mapa__tempo">{{ caminhao.minutosAtePassagem }} min</span>
                 </div>
-                <p class="linha__texto">Trajetórias e tempos ilustrativos; não representam veículos nem previsão real da coleta.</p>
+                <p class="cartao-mapa__nota">Trajetórias e tempos ilustrativos; não representam veículos nem previsão real da coleta.</p>
             </div>
 
             <div v-if="!estado.localCep">

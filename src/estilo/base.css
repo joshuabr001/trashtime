@@ -2217,3 +2217,56 @@ button {
 .mapa-real__acoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; background: var(--fundo); }
 .mapa-real__acoes .mapa-real__estado { flex: 1 1 200px; padding: 0; }
 .marcador-casa { display: grid; place-items: center; border-radius: 50%; background: #fff; border: 2px solid #155eef; box-shadow: 0 2px 8px #0005; font-size: 23px; line-height: 1; }
+
+/* Resumo da coleta abaixo do mapa: respiro e quebra de texto no celular. */
+#tela-mapa .cartao-mapa {
+    padding: 16px;
+    min-width: 0;
+    overflow-wrap: break-word;
+}
+
+#tela-mapa .mapa-real + .cartao-mapa { margin-top: 14px; }
+#tela-mapa .cartao-mapa + .cartao-mapa { margin-top: 12px; }
+
+.cartao-mapa__titulo {
+    margin: 0;
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.cartao-mapa__texto {
+    margin: 8px 0 0;
+    color: var(--texto-suave);
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.cartao-mapa__veiculo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--borda-suave);
+}
+
+.cartao-mapa__veiculo-info { flex: 1; min-width: 0; }
+.cartao-mapa__tempo { flex-shrink: 0; white-space: nowrap; }
+
+.cartao-mapa__nota {
+    margin: 12px 0 0;
+    color: var(--texto-suave);
+    font-size: 11.5px;
+    line-height: 1.4;
+}
+
+.cartoes-status--cep .cartao-status > div:last-child { min-width: 0; }
+
+@media (max-width: 420px) {
+    .cartoes-status--cep { flex-direction: column; }
+    .cartoes-status--cep .cartao-status { width: 100%; }
+}
+
+@media (min-width: 900px) {
+    #tela-mapa .mapa-real + .cartao-mapa,
+    #tela-mapa .cartao-mapa + .cartao-mapa { margin-top: 0; }
+}
