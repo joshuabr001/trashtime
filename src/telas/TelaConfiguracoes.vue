@@ -12,7 +12,7 @@
                 <p class="linha__titulo">Seu CEP: {{ estado.localCep.cep }}</p>
                 <p class="linha__texto">{{ estado.localCep.bairro }} · {{ estado.localCep.cidade }}/{{ estado.localCep.estado }}</p>
                 <p class="linha__texto">{{ estado.localCep.rua || 'Rua não informada' }}, {{ estado.localCep.numero || 'número não informado' }}</p>
-                <p class="linha__texto">{{ estado.localCep.precisao === 'numero' ? 'Casa localizada pelo endereço completo.' : 'Rua localizada; número não disponível no mapa.' }} Os caminhões são simulados.</p>
+                <p class="linha__texto">{{ estado.localCep.precisao === 'numero' ? 'Casa localizada pelo endereço completo.' : estado.localCep.precisao === 'instituicao' ? 'Local identificado pela instituição associada ao CEP.' : 'Rua localizada; número não disponível no mapa.' }} Os caminhões são simulados.</p>
             </div>
             <div class="cartao" style="margin-top: 10px">
                 <div class="linha">

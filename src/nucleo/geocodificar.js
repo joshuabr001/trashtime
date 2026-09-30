@@ -49,6 +49,23 @@ export function escolherCoordenadas(features, endereco) {
     return candidatos[0] || null;
 }
 
+export function escolherInstituicao(features, endereco) {
+    const nome = nomeComparavel(endereco.unidade);
+    if (!nome) return null;
+    for (const feature of features || []) {
+        const props = feature.properties || {};
+        const [longitude, latitude] = feature.geometry?.coordinates || [];
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude) ||
+            nomeComparavel(props.countrycode) !== 'br' ||
+            nomeComparavel(props.city) !== nomeComparavel(endereco.cidade) ||
+            !nomeComparavel(props.name).startsWith(nome) ||
+            nomeComparavel(props.street) !== nomeComparavel(endereco.rua) ||
+            !bairroCompativel(nomeComparavel(endereco.bairro), nomeComparavel(props.district))) continue;
+        return { latitude, longitude, precisao: 'instituicao' };
+    }
+    return null;
+}
+
 export async function geocodificarEndereco(endereco) {
     const params = new URLSearchParams({
         street: endereco.rua,
@@ -78,5 +95,15 @@ export async function geocodificarEndereco(endereco) {
         throw new Error(`A busca no mapa falhou (HTTP ${alternativaResposta.status}). Tente novamente em instantes.`);
     }
     const dados = await alternativaResposta.json();
-    return escolherCoordenadas(dados.features, endereco);
+    const encontrado = escolherCoordenadas(dados.features, endereco);
+    if (encontrado || !endereco.unidade) return encontrado;
+    // CEP de grande usuário: o prédio pode existir como instituição, sem
+    // número cadastrado como endereço residencial no OpenStreetMap.
+    const local = new URLSearchParams({
+        q: `${endereco.unidade} ${endereco.cidade}`, countrycode: 'BR', limit: '5'
+    });
+    const respostaInstituicao = await fetch(`https://photon.komoot.io/api?${local}`);
+    if (!respostaInstituicao.ok) return null;
+    const instituicoes = await respostaInstituicao.json();
+    return escolherInstituicao(instituicoes.features, endereco);
 }

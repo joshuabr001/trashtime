@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { escolherCoordenadas, geocodificarEndereco } from '../src/nucleo/geocodificar.js';
+import { escolherCoordenadas, escolherInstituicao, geocodificarEndereco } from '../src/nucleo/geocodificar.js';
 
 const endereco = { rua: 'Travessa Campos Sales', numero: '210', cidade: 'Belém', bairro: 'Campina', cep: '66010000' };
 const feature = (properties, longitude, latitude) => ({
@@ -42,6 +42,19 @@ test('reconhece rodovia e estrada com CEP genérico como ponto aproximado da rua
     });
     assert.equal(ponto.precisao, 'rua');
     assert.equal(ponto.bairroConfere, true);
+});
+
+test('aceita instituição de CEP especial só quando nome, rua, bairro e cidade conferem', () => {
+    const postal = {
+        rua: 'Avenida das Palmeiras', cidade: 'Belém', bairro: 'Umarizal',
+        unidade: 'Universidade Exemplo'
+    };
+    const instituicao = feature({
+        name: 'Universidade Exemplo - Campus Centro',
+        street: 'Avenida das Palmeiras', district: 'Umarizal'
+    }, -48.48, -1.44);
+    assert.equal(escolherInstituicao([instituicao], postal).precisao, 'instituicao');
+    assert.equal(escolherInstituicao([instituicao], { ...postal, rua: 'Avenida do Sol' }), null);
 });
 
 test('consulta o Photon sem solicitar idioma indisponível', async () => {

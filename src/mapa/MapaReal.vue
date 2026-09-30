@@ -4,7 +4,7 @@
         <div class="mapa-real__acoes">
             <button class="botao-claro" :disabled="!contextoSeguro" @click="localizar">Mostrar onde estou agora</button>
             <button v-if="estado.localCep && mostrandoGps" class="botao-claro" @click="voltarParaCasa">Voltar ao endereço da coleta</button>
-            <p v-if="estado.localCep" class="mapa-real__estado" role="status">{{ estado.localCep.precisao === 'numero' ? 'Casa localizada pelo endereço completo.' : 'Rua localizada; o número da casa não consta no mapa, então o ponto é aproximado.' }}</p>
+            <p v-if="estado.localCep" class="mapa-real__estado" role="status">{{ estado.localCep.precisao === 'numero' ? 'Casa localizada pelo endereço completo.' : estado.localCep.precisao === 'instituicao' ? 'Local identificado pela instituição associada ao CEP.' : 'Rua localizada; o número da casa não consta no mapa, então o ponto é aproximado.' }}</p>
             <p class="mapa-real__estado" role="status">{{ localizacaoMensagem }}</p>
         </div>
         <p class="mapa-real__estado" v-if="mostrarVeiculos" role="status">{{ mensagem }}</p>
@@ -73,10 +73,11 @@ function mostrarCep() {
     }
     const { latitude, longitude, bairro } = estado.localCep;
     const ponto = [latitude, longitude];
-    mapa.setView(ponto, estado.localCep.precisao === 'numero' ? 17 : 15);
+    mapa.setView(ponto, estado.localCep.precisao === 'rua' ? 15 : 17);
     const numeroEncontrado = estado.localCep.precisao === 'numero';
+    const rotulo = numeroEncontrado ? 'Casa' : estado.localCep.precisao === 'instituicao' ? 'Instituição do CEP' : 'Rua aproximada';
     marcadorCasa = L.marker(ponto, { icon: numeroEncontrado ? iconeCasa : iconeRua })
-        .addTo(mapa).bindTooltip(`${numeroEncontrado ? 'Casa' : 'Rua aproximada'} · ${bairro}`, {
+        .addTo(mapa).bindTooltip(`${rotulo} · ${bairro}`, {
             permanent: true, direction: 'bottom'
         });
     posicionarCaminhoesDemo(ponto);

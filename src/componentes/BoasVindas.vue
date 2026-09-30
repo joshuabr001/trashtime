@@ -65,17 +65,20 @@ async function buscarCep() {
     buscando.value = true;
     erro.value = '';
     try {
-        const resposta = await fetch(`https://brasilapi.com.br/api/cep/v2/${codigo}`);
+        const resposta = await fetch(`https://viacep.com.br/ws/${codigo}/json/`);
         if (!resposta.ok) throw new Error('CEP não encontrado. Confira os números.');
         const dados = await resposta.json();
+        if (dados.erro) throw new Error('CEP não encontrado. Confira os números.');
         if (cep.value.replace(/\D/g, '') !== codigo) return;
         enderecoEncontrado.value = {
             cep: codigo,
-            bairro: dados.neighborhood || 'Bairro não informado',
-            cidade: dados.city || '', estado: dados.state || ''
+            bairro: dados.bairro || 'Bairro não informado',
+            cidade: dados.localidade || '', estado: dados.uf || '',
+            unidade: dados.unidade || ''
         };
-        rua.value = codigo === estado.localCep?.cep && rua.value ? rua.value : dados.street || '';
-        numero.value = codigo === estado.localCep?.cep ? numero.value : '';
+        rua.value = codigo === estado.localCep?.cep && rua.value ? rua.value : dados.logradouro || '';
+        numero.value = codigo === estado.localCep?.cep
+            ? numero.value : /^\d+[a-z]?$/i.test(dados.complemento || '') ? dados.complemento : '';
     } catch (falha) {
         erro.value = falha.message || 'Não foi possível consultar o CEP. Tente novamente.';
     } finally {

@@ -98,13 +98,15 @@ que é reativo, e daí a tela se atualiza sozinha.
 Tudo o que o morador escolhe fica guardado no aparelho.
 
 Na primeira abertura, informe o CEP, confira a rua e digite o número da residência.
-O app consulta a BrasilAPI CEP V2 para preencher o endereço e usa Photon para
+O app consulta o ViaCEP para preencher o endereço e usa Photon para
 buscar a posição da rua e do número no OpenStreetMap. Um ícone de casa aparece
 no resultado encontrado. Se o serviço não confirmar a rua na cidade informada,
 o app pede para conferir os dados em vez de marcar outra região como residência.
 Essa busca envia rua, número e cidade ao serviço público Photon ao salvar o endereço.
 Quando o número não está cadastrado no mapa, o ponto representa apenas a rua
-e é identificado como aproximado. Três marcadores de caminhões aparecem perto do endereço da
+e é identificado como aproximado. Para CEPs de grandes usuários, o app também
+pode encontrar o local pelo nome da instituição devolvido pelo ViaCEP.
+Três marcadores de caminhões aparecem perto do endereço da
 coleta apenas como **simulação visual**: eles não
 representam veículos ou rotas reais. O GPS opcional mostra onde está o celular,
 sem alterar o endereço da coleta. Para esse CEP, o calendário e os alertas de
