@@ -6,7 +6,7 @@
             <button class="folha__fechar" aria-label="Fechar" @click="$emit('fechar')">×</button>
         </div>
         <p class="folha__texto">
-            Seu relato vira um protocolo que a prefeitura pode acompanhar.
+            Seu relato fica salvo neste aparelho. O envio para a prefeitura ainda não está disponível.
         </p>
 
         <p class="campo__rotulo">O que aconteceu?</p>
@@ -67,7 +67,7 @@ function enviar() {
     escolhido.value = null;
     descricao.value = '';
     emit('fechar');
-    mostrarAlerta('Relato ' + protocolo + ' registrado',
-                  tipo.rotulo + ' · a prefeitura foi notificada.', 'ic-alerta');
+    mostrarAlerta('Relato ' + protocolo + ' salvo neste aparelho',
+                  tipo.rotulo + ' · ainda não enviado à prefeitura.', 'ic-alerta');
 }
 </script>

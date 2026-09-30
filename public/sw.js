@@ -3,7 +3,7 @@
    imagens. Assim uma versão nova chega sozinha a quem já visitou, e o app
    continua abrindo sem internet. */
 
-const CACHE = 'trashtime-v8';
+const CACHE = 'trashtime-v9';
 
 /* O empacotador carimba um código no nome de cada arquivo gerado
    (recursos/index-Cet-lnag.js), e esse nome muda a cada publicação. Por isso a
@@ -64,6 +64,10 @@ self.addEventListener('fetch', function (evento) {
 
     const url = new URL(pedido.url);
     const mesmaOrigem = url.origin === location.origin;
+    // Posições da frota nunca devem ser servidas do cache offline.
+    if (mesmaOrigem && url.pathname.startsWith('/api/')) {
+        return;
+    }
     const ehMidia = /\.(png|jpg|jpeg|gif|svg|webp|ico|woff2?)$/i.test(url.pathname);
 
     // O app em si: tenta a rede antes, para a versão nova chegar sem espera

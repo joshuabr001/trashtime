@@ -1,0 +1,5 @@
+# Este projeto Vercel publica somente o frontend Vite.
+api/
+dist/
+.env*
+.mcp.json

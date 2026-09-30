@@ -94,7 +94,7 @@
             <span class="legenda__item"><i class="traco traco--percorrido"></i>Já passou</span>
             <span class="legenda__item"><i class="traco traco--previsto"></i>Rota prevista</span>
             <span class="legenda__item"><i class="traco traco--pendente"></i>Ainda não passou</span>
-            <span class="legenda__item"><i class="ponto-voce"></i>Você</span>
+            <span class="legenda__item"><i class="ponto-voce"></i>Ponto do seu bairro</span>
         </div>
 
         <button class="mapa__puxador" ref="puxador"

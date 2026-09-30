@@ -16,9 +16,11 @@ Brás, Bosque Rodrigues Alves e a UFPA. As ruas dos itinerários são reais.
 
 ## Tecnologia
 
-**Vue 3** com **Vite**. Estilo próprio, sem framework de CSS.
+**Vue 3** com **Vite**. Estilo próprio, sem framework de CSS. O frontend agora
+também tem um modo de mapa real com **Leaflet**. A API opcional em `api/` usa
+**NestJS sobre Express** e **PostgreSQL**.
 
-O mapa não usa biblioteca de mapas: é SVG desenhado por cálculo. A malha de ruas
+O mapa da demonstração não usa biblioteca de mapas: é SVG desenhado por cálculo. A malha de ruas
 sai de uma única fórmula — `P(i,j) = origem + i×62×u + j×46×v`, com as vias a
 −4° — e as rotas dos caminhões correm sobre os cruzamentos dela. O caminhão é um
 volume de 24 faces, montado por uma projeção que leva cada ponto do espaço às
@@ -95,6 +97,24 @@ que é reativo, e daí a tela se atualiza sozinha.
 
 Tudo o que o morador escolhe fica guardado no aparelho.
 
+## Modo de rastreamento real
+
+O modo real usa o mapa Leaflet e consulta a API. Veja [api/README.md](api/README.md)
+para criar o banco, iniciar o servidor e configurar `VITE_API_URL` no frontend.
+Para demonstrar sem rastreador, use `npm run simulate` na pasta `api/`; as
+posições fictícias são identificadas como simulação na tela.
+O sistema de rastreamento da frota ainda não foi identificado, portanto não há
+posições reais disponíveis. Sem `VITE_API_URL`, o app continua em modo de
+demonstração e identifica os caminhões como simulados. No modo real, a posição
+é exibida apenas quando a última amostra tem até cinco minutos. O calendário
+permanece ilustrativo; os relatos ainda são locais e não chegam à prefeitura.
+
+O marcador do mapa ilustrado representa um ponto do bairro, não o GPS do
+morador. Para ver sua posição, use **Ver minha localização no mapa real** e
+autorize o navegador. A posição do aparelho fica somente no navegador. Esse
+recurso exige HTTPS; o endereço HTTP da rede local usado no desenvolvimento
+não libera o GPS no celular.
+
 ## Publicar na Vercel
 
 O projeto é detectado como Vite automaticamente: a Vercel roda `npm install` e
@@ -107,6 +127,8 @@ têm um código no nome, são guardados por um ano.
 
 ## Dados
 
-Não há GPS nem servidor. As posições dos caminhões são uma simulação: cada um
-percorre sua rota a uma velocidade fixa. O histórico é gerado a partir da data,
-sempre igual para o mesmo dia. Os relatos ficam só neste aparelho.
+Sem configurar a API, as posições dos caminhões são uma simulação: cada um
+percorre sua rota a uma velocidade fixa. Com a API configurada, o mapa mostra
+somente posições recebidas e recentes; ainda falta conectá-la ao fornecedor do
+rastreamento. O histórico do calendário é gerado a partir da data, sempre igual
+para o mesmo dia. Os relatos ficam só neste aparelho.

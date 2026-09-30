@@ -87,7 +87,7 @@
                 </div>
             </div>
 
-            <p class="nota-rodape">TrashTime · versão 2.0 · dados simulados</p>
+            <p class="nota-rodape">TrashTime · versão 2.0 · {{ rodapeDados }}</p>
         </div>
     </section>
 </template>
@@ -104,4 +104,7 @@ defineEmits(['alterar-endereco']);
 const escuro = computed(() => temaAtual() === 'escuro');
 
 const enderecoAtual = computed(() => estado.endereco || regiaoAtual.value.endereco);
+const rodapeDados = import.meta.env.VITE_API_URL
+    ? 'posições recebidas pela API; calendário ilustrativo'
+    : 'dados simulados';
 </script>

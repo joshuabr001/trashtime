@@ -3,7 +3,7 @@
         <header class="cabecalho">
             <div class="cabecalho__texto">
                 <h1 class="cabecalho__titulo">Coleta de Lixo</h1>
-                <p class="cabecalho__subtitulo">Acompanhe em tempo real</p>
+                <p class="cabecalho__subtitulo">{{ rastreamentoReal ? (simulados > 0 ? 'Demonstração com posições simuladas' : 'Posições recebidas pela API') : mapaGeografico ? 'Mapa de ruas · localização opcional' : 'Demonstração com dados simulados' }}</p>
             </div>
             <button class="cabecalho__sino" aria-label="Ver avisos" @click="irPara('avisos')">
                 <svg class="icone" width="24" height="24"><use href="#ic-sino" /></svg>
@@ -18,9 +18,9 @@
                         <svg class="icone" width="21" height="21"><use href="#ic-caminhao" /></svg>
                     </div>
                     <div>
-                        <p class="rotulo">Caminhões em rota</p>
-                        <p class="numerao">{{ emRota }} de {{ frota.length }}</p>
-                        <p class="rotulo">em rota no centro</p>
+                        <p class="rotulo">{{ rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
+                        <p class="numerao">{{ rastreamentoReal ? contagemReal : mapaGeografico ? 'GPS' : emRota + ' de ' + frota.length }}</p>
+                        <p class="rotulo">{{ rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
                     </div>
                 </div>
                 <div class="cartao-status">
@@ -28,7 +28,7 @@
                         <svg class="icone" width="20" height="20"><use href="#ic-calendario" /></svg>
                     </div>
                     <div>
-                        <p class="rotulo">Próxima coleta</p>
+                        <p class="rotulo">{{ rastreamentoReal ? 'Próxima coleta · previsão ilustrativa' : 'Próxima coleta' }}</p>
                         <p class="destaque">{{ proxima.dia }}</p>
                         <p class="rotulo">{{ proxima.hora }}</p>
                     </div>
@@ -37,10 +37,14 @@
         </div>
 
         <div class="faixa faixa--principal">
-            <MapaBelem />
+            <button v-if="!rastreamentoReal" class="botao-claro" @click="mapaGeografico = !mapaGeografico">
+                {{ mapaGeografico ? 'Ver mapa ilustrado' : 'Ver minha localização no mapa real' }}
+            </button>
+            <MapaReal v-if="rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal" @atualizar="receberAtualizacao" />
+            <MapaBelem v-else />
 
             <div>
-                <div class="cartao-caminhao" v-if="caminhaoAtual">
+                <div class="cartao-caminhao" v-if="!rastreamentoReal && !mapaGeografico && caminhaoAtual">
                     <span class="cartao-caminhao__ponto" :style="{ background: caminhaoAtual.cor }"></span>
                     <button class="cartao-caminhao__info" @click="$emit('abrir-itinerario')">
                         <p class="cartao-caminhao__nome">{{ caminhaoAtual.nome }}</p>
@@ -120,8 +124,9 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import MapaBelem from '../mapa/MapaBelem.vue';
+import MapaReal from '../mapa/MapaReal.vue';
 import MeusRelatos from '../componentes/MeusRelatos.vue';
 import { estado, frota, caminhaoAtual, regiaoAtual, naoLidos, irPara } from '../estado/estado.js';
 import { textoChegada, textoSituacao } from '../estado/frota.js';
@@ -132,6 +137,15 @@ defineEmits(['abrir-relato', 'abrir-itinerario']);
 
 // Os caminhões atendem bairros diferentes, então o número é do centro inteiro
 const emRota = computed(() => frota.filter((c) => c.velocidade > 0).length);
+const rastreamentoReal = Boolean(import.meta.env.VITE_API_URL);
+const contagemReal = ref(0);
+const simulados = ref(0);
+const mapaGeografico = ref(false);
+
+function receberAtualizacao(resumo) {
+    contagemReal.value = resumo.online;
+    simulados.value = resumo.simulados;
+}
 
 const proxima = computed(() => {
     const lista = proximasColetas(estado.regiao, 1);

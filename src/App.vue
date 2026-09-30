@@ -115,7 +115,9 @@ let relogio = null;
 
 onMounted(() => {
     document.addEventListener('keydown', aoTeclar);
-    relogio = window.setInterval(avancarCaminhoes, 1000);
+    if (!import.meta.env.VITE_API_URL) {
+        relogio = window.setInterval(avancarCaminhoes, 1000);
+    }
 });
 
 onBeforeUnmount(() => {
@@ -125,7 +127,7 @@ onBeforeUnmount(() => {
 
 // Voltar para o mapa: a caixa recuperou o tamanho, a janela é refeita
 watch(() => estado.tela, (tela) => {
-    if (tela === 'mapa') {
+    if (tela === 'mapa' && !import.meta.env.VITE_API_URL) {
         window.requestAnimationFrame(aplicarVista);
     }
 });
