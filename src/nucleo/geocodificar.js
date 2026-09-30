@@ -46,8 +46,20 @@ export async function geocodificarEndereco(endereco) {
         countrycode: 'BR',
         limit: '10'
     });
-    const resposta = await fetch(`https://photon.komoot.io/structured?${params}`);
-    if (!resposta.ok) throw new Error('A busca no mapa está indisponível. Tente novamente em instantes.');
+    let resposta = await fetch(`https://photon.komoot.io/structured?${params}`);
+    if (resposta.status === 400) {
+        // Alguns endereços são recusados pela consulta estruturada. A pesquisa
+        // textual usa os mesmos dados informados, sem alterar o endereço salvo.
+        const texto = `${endereco.rua} ${endereco.numero}, ${endereco.cidade}, Brasil`;
+        const alternativa = new URLSearchParams({ q: texto, countrycode: 'BR', limit: '10' });
+        resposta = await fetch(`https://photon.komoot.io/api?${alternativa}`);
+    }
+    if (!resposta.ok) {
+        const detalhe = resposta.status === 429
+            ? 'O serviço de mapas atingiu o limite de consultas. Tente novamente mais tarde.'
+            : `A busca no mapa falhou (HTTP ${resposta.status}). Tente novamente em instantes.`;
+        throw new Error(detalhe);
+    }
     const dados = await resposta.json();
     return escolherCoordenadas(dados.features, endereco);
 }

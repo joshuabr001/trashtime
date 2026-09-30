@@ -42,3 +42,21 @@ test('consulta o Photon sem solicitar idioma indisponível', async () => {
         globalThis.fetch = fetchOriginal;
     }
 });
+
+test('usa pesquisa textual quando a consulta estruturada é rejeitada', async () => {
+    const fetchOriginal = globalThis.fetch;
+    const urls = [];
+    try {
+        globalThis.fetch = async (url) => {
+            urls.push(String(url));
+            if (urls.length === 1) return { ok: false, status: 400 };
+            return { ok: true, json: async () => ({
+                features: [feature({ street: endereco.rua, housenumber: endereco.numero }, -48.49, -1.45)]
+            }) };
+        };
+        assert.equal((await geocodificarEndereco(endereco)).precisao, 'numero');
+        assert.match(urls[1], /\/api\?/);
+    } finally {
+        globalThis.fetch = fetchOriginal;
+    }
+});
