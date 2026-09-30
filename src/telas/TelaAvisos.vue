@@ -8,6 +8,11 @@
             <button class="botao-claro" @click="marcarTodasLidas">Marcar lidas</button>
         </header>
 
+        <div v-if="estado.localCep" class="cartao">
+            <p class="linha__titulo">Avisos para o endereço da coleta</p>
+            <p class="linha__texto">O endereço da sua casa continua sendo a referência quando você está em outro lugar. Neste protótipo, os caminhões são simulados e não há alerta real de chegada nem notificações com o app fechado.</p>
+        </div>
+
         <div class="chips">
             <button class="chip" v-for="filtro in FILTROS" :key="filtro.id"
                     :class="{ 'chip--ativo': filtro.id === estado.filtroAvisos }"
@@ -32,7 +37,7 @@
             </button>
         </div>
 
-        <p class="nota-rodape">Avisos são guardados por 30 dias</p>
+        <p class="nota-rodape" v-if="!estado.localCep">Avisos de demonstração</p>
     </section>
 </template>
 

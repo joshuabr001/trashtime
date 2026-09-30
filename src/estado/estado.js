@@ -127,10 +127,10 @@ export const avisos = computed(() => {
         tipo: 'aviso',
         titulo: 'Relato registrado · ' + relato.protocolo,
         corpo: relato.rotulo + ' · ' + relato.situacao +
-            '. Você recebe um aviso quando houver resposta.',
+            '. Este protótipo não acompanha respostas da prefeitura.',
         quando: rotuloQuando(relato.criadoEm)
     }));
-    return avisosDinamicos.value.concat(deRelatos).concat(AVISOS_BASE);
+    return avisosDinamicos.value.concat(deRelatos).concat(estado.localCep ? [] : AVISOS_BASE);
 });
 
 export const naoLidos = computed(

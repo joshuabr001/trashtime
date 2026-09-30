@@ -3,7 +3,7 @@
         <header class="cabecalho">
             <div class="cabecalho__texto">
                 <h1 class="cabecalho__titulo">Coleta de Lixo</h1>
-                <p class="cabecalho__subtitulo">{{ estado.localCep ? `${estado.localCep.bairro} · CEP ${estado.localCep.cep} · caminhões simulados` : rastreamentoReal ? (simulados > 0 ? 'Demonstração com posições simuladas' : 'Posições recebidas pela API') : mapaGeografico ? 'Mapa de ruas · localização opcional' : 'Demonstração com dados simulados' }}</p>
+                <p class="cabecalho__subtitulo">{{ estado.localCep ? `Endereço da coleta · ${estado.localCep.bairro} · CEP ${estado.localCep.cep}` : rastreamentoReal ? (simulados > 0 ? 'Demonstração com posições simuladas' : 'Posições recebidas pela API') : mapaGeografico ? 'Mapa de ruas · localização opcional' : 'Demonstração com dados simulados' }}</p>
             </div>
             <button class="cabecalho__sino" aria-label="Ver avisos" @click="irPara('avisos')">
                 <svg class="icone" width="24" height="24"><use href="#ic-sino" /></svg>
@@ -18,7 +18,7 @@
                         <svg class="icone" width="21" height="21"><use href="#ic-caminhao" /></svg>
                     </div>
                     <div>
-                        <p class="rotulo">{{ estado.localCep ? 'Caminhões próximos' : rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'Caminhões simulados perto da casa' : rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
                         <p class="numerao">{{ estado.localCep ? 3 : rastreamentoReal ? contagemReal : mapaGeografico ? 'GPS' : emRota + ' de ' + frota.length }}</p>
                         <p class="rotulo">{{ estado.localCep ? 'posições ilustrativas' : rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
                     </div>

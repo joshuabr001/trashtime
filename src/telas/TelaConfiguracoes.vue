@@ -3,7 +3,7 @@
         <header class="cabecalho cabecalho--simples">
             <div class="cabecalho__texto">
                 <h1 class="cabecalho__titulo">Configurações</h1>
-                <p class="cabecalho__subtitulo">CEP, alertas e lembretes</p>
+                <p class="cabecalho__subtitulo">Endereço da coleta e preferências</p>
             </div>
         </header>
 
@@ -11,12 +11,13 @@
             <div v-if="estado.localCep" class="cartao">
                 <p class="linha__titulo">Seu CEP: {{ estado.localCep.cep }}</p>
                 <p class="linha__texto">{{ estado.localCep.bairro }} · {{ estado.localCep.cidade }}/{{ estado.localCep.estado }}</p>
-                <p class="linha__texto">Localização aproximada; caminhões do mapa são simulados.</p>
+                <p class="linha__texto">{{ estado.localCep.rua || 'Rua não informada' }}, {{ estado.localCep.numero || 'número não informado' }}</p>
+                <p class="linha__texto">O ponto no mapa é aproximado pelo CEP; os caminhões são simulados.</p>
             </div>
             <div class="cartao" style="margin-top: 10px">
                 <div class="linha">
                     <div>
-                        <p class="linha__titulo">Sua localização</p>
+                        <p class="linha__titulo">Endereço da coleta</p>
                         <p class="linha__texto">{{ enderecoAtual }}</p>
                     </div>
                     <button class="botao-claro" @click="$emit('alterar-endereco')">Alterar</button>
@@ -40,7 +41,11 @@
             </div>
 
             <p class="secao__rotulo">NOTIFICAÇÕES</p>
-            <div class="cartao">
+            <div v-if="estado.localCep" class="cartao">
+                <p class="linha__titulo">Avisos de chegada ainda indisponíveis</p>
+                <p class="linha__texto">O endereço da casa está salvo, mas não há rastreamento real nem envio de notificações com o app fechado. O GPS do celular não altera o endereço da coleta.</p>
+            </div>
+            <div v-else class="cartao">
                 <div class="linha" v-for="item in INTERRUPTORES" :key="item.id">
                     <div>
                         <p class="linha__titulo">{{ item.titulo }}</p>
@@ -56,7 +61,7 @@
                 </div>
             </div>
 
-            <div class="bloco-distancia" v-if="estado.config.proximidade">
+            <div class="bloco-distancia" v-if="!estado.localCep && estado.config.proximidade">
                 <p class="bloco-distancia__rotulo">Avisar quando o caminhão estiver a</p>
                 <div class="chips chips--interno">
                     <button class="chip" v-for="valor in DISTANCIAS" :key="valor"
@@ -67,8 +72,8 @@
                 </div>
             </div>
 
-            <p class="secao__rotulo">LEMBRETE DE COLETA</p>
-            <div class="cartao">
+            <p v-if="!estado.localCep" class="secao__rotulo">LEMBRETE DE COLETA</p>
+            <div v-if="!estado.localCep" class="cartao">
                 <div class="linha">
                     <div>
                         <p class="linha__titulo">Lembrar na véspera</p>

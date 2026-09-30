@@ -97,11 +97,14 @@ que é reativo, e daí a tela se atualiza sozinha.
 
 Tudo o que o morador escolhe fica guardado no aparelho.
 
-Na primeira abertura, informe um CEP. O app consulta a BrasilAPI CEP V2 para obter
-uma posição aproximada e abre o mapa de ruas nesse ponto. Três marcadores de
-caminhões aparecem perto do CEP ou do GPS exibido apenas como **simulação visual**: eles não
-representam veículos ou rotas reais. Para esse CEP, o calendário e os alertas de
-proximidade não têm dados cadastrados. Alguns CEPs não possuem coordenadas na
+Na primeira abertura, informe o CEP, confira a rua e digite o número da residência.
+O app consulta a BrasilAPI CEP V2 para obter uma posição aproximada e abre o mapa
+de ruas nesse ponto. Três marcadores de caminhões aparecem perto do endereço da
+coleta apenas como **simulação visual**: eles não
+representam veículos ou rotas reais. O GPS opcional mostra onde está o celular,
+sem alterar o endereço da coleta. Para esse CEP, o calendário e os alertas de
+proximidade não têm dados cadastrados. Não há notificações de chegada com o app
+fechado. Alguns CEPs não possuem coordenadas na
 BrasilAPI; nesse caso, o app informa que não pode posicioná-los no mapa.
 
 ## Modo de rastreamento real

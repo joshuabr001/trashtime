@@ -1,12 +1,13 @@
 <template>
     <div class="mapa-real">
-        <div ref="elemento" class="mapa-real__canvas" role="application" aria-label="Mapa de ruas com sua localização e caminhões simulados"></div>
+        <div ref="elemento" class="mapa-real__canvas" role="application" aria-label="Mapa de ruas com endereço da coleta e caminhões simulados"></div>
         <div class="mapa-real__acoes">
-            <button class="botao-claro" :disabled="!contextoSeguro" @click="localizar">Mostrar minha localização</button>
+            <button class="botao-claro" :disabled="!contextoSeguro" @click="localizar">Mostrar onde estou agora</button>
+            <button v-if="estado.localCep && mostrandoGps" class="botao-claro" @click="voltarParaCasa">Voltar ao endereço da coleta</button>
             <p class="mapa-real__estado" role="status">{{ localizacaoMensagem }}</p>
         </div>
         <p class="mapa-real__estado" v-if="mostrarVeiculos" role="status">{{ mensagem }}</p>
-        <p class="mapa-real__estado" v-else-if="estado.localCep" role="status">Os três caminhões laranja são ilustrativos e aparecem perto do CEP ou da localização mostrada. Não são veículos rastreados.</p>
+        <p class="mapa-real__estado" v-else-if="estado.localCep" role="status">Os três caminhões laranja são ilustrativos e ficam perto do endereço da coleta. Não são veículos rastreados.</p>
     </div>
 </template>
 
@@ -22,7 +23,7 @@ const elemento = ref(null);
 const mensagem = ref('Consultando posições da frota…');
 const contextoSeguro = window.isSecureContext && 'geolocation' in navigator;
 const localizacaoMensagem = ref(contextoSeguro
-    ? 'Sua localização só aparece após sua autorização.'
+    ? 'O endereço da coleta permanece salvo mesmo se você mostrar onde está agora.'
     : 'Para usar sua localização no celular, abra o app por HTTPS. O endereço HTTP da rede local não permite acesso ao GPS.');
 const marcadores = new Map();
 let mapa;
@@ -31,6 +32,7 @@ let ativo = false;
 let marcadorUsuario;
 let precisaoUsuario;
 let marcadorCep;
+const mostrandoGps = ref(false);
 const caminhoesDemo = [];
 
 function posicionarCaminhoesDemo(ponto) {
@@ -63,8 +65,9 @@ function mostrarCep() {
     mapa.setView(ponto, 14);
     marcadorCep = L.circleMarker(ponto, {
         radius: 9, color: '#155EEF', weight: 3, fillColor: '#4C8DFF', fillOpacity: 1
-    }).addTo(mapa).bindTooltip(`CEP informado · ${bairro}`);
+    }).addTo(mapa).bindTooltip(`Endereço da coleta · ${bairro}`, { permanent: true, direction: 'bottom' });
     posicionarCaminhoesDemo(ponto);
+    mostrandoGps.value = false;
 }
 
 watch(() => estado.localCep, mostrarCep);
@@ -94,13 +97,19 @@ function localizar() {
             }
         }
         mapa.setView(ponto, 16);
-        posicionarCaminhoesDemo(ponto);
-        localizacaoMensagem.value = `Localização obtida · precisão aproximada de ${Math.round(accuracy)} m.`;
+        mostrandoGps.value = true;
+        localizacaoMensagem.value = `Localização atual obtida · precisão aproximada de ${Math.round(accuracy)} m. O endereço da coleta não mudou.`;
     }, (erro) => {
         localizacaoMensagem.value = erro.code === 1
             ? 'Permissão de localização negada. Ative-a nas configurações do navegador.'
             : 'Não foi possível obter sua localização. Verifique o GPS e tente novamente.';
     }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+}
+
+function voltarParaCasa() {
+    if (!mapa || !estado.localCep) return;
+    mapa.setView([estado.localCep.latitude, estado.localCep.longitude], 16);
+    mostrandoGps.value = false;
 }
 
 async function atualizar() {
