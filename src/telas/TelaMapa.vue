@@ -51,15 +51,16 @@
 
             <div v-if="estado.localCep" class="cartao cartao-mapa">
                 <h2 class="cartao-mapa__titulo">Caminhões no mapa · demonstração</h2>
-                <p class="cartao-mapa__texto">Próxima passagem simulada: {{ proximoSimulado.nome }} em cerca de {{ proximoSimulado.minutosAtePassagem }} min.</p>
+                <p class="cartao-mapa__texto">Na simulação, {{ proximoSimulado.nome }} é o próximo a passar pela região: {{ hora(proximoSimulado.proximaPassagemMs) }} (em cerca de {{ proximoSimulado.minutosAtePassagem }} min).</p>
                 <div class="cartao-mapa__veiculo" v-for="caminhao in caminhoesCep" :key="caminhao.id">
                     <div class="cartao-mapa__veiculo-info">
                         <p class="linha__titulo">{{ caminhao.nome }}</p>
-                        <p class="linha__texto">Aproximadamente {{ caminhao.distanciaM }} m do ponto cadastrado</p>
+                        <p class="linha__texto">Passou na simulação às {{ hora(caminhao.ultimaPassagemMs) }}</p>
+                        <p class="linha__texto">Próxima volta às {{ hora(caminhao.proximaPassagemMs) }} · cerca de {{ caminhao.distanciaM }} m do ponto</p>
                     </div>
-                    <span class="marca marca--comum cartao-mapa__tempo">{{ caminhao.minutosAtePassagem }} min</span>
+                    <span class="marca marca--comum cartao-mapa__tempo">Em {{ caminhao.minutosAtePassagem }} min</span>
                 </div>
-                <p class="cartao-mapa__nota">Trajetórias e tempos ilustrativos; não representam veículos nem previsão real da coleta.</p>
+                <p class="cartao-mapa__nota">Essas passagens se repetem apenas na demonstração. Não indicam se o caminhão de coleta passou pela sua rua nem quando chegará de verdade.</p>
             </div>
 
             <div v-if="!estado.localCep">
@@ -183,6 +184,7 @@ onBeforeUnmount(pararRelogioCep);
 const caminhoesCep = computed(() => caminhoesSimulados(estado.localCep, agora.value)
     .sort((a, b) => a.minutosAtePassagem - b.minutosAtePassagem));
 const proximoSimulado = computed(() => caminhoesCep.value[0] || { nome: 'Nenhum', minutosAtePassagem: '—' });
+const hora = (instanteMs) => new Date(instanteMs).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 const regiaoCep = computed(() => {
     if (!estado.localCep) return null;
     const nome = (valor) => String(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '')

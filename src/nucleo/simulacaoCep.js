@@ -13,13 +13,17 @@ export function caminhoesSimulados(local, instanteMs) {
         const fase = ((instanteMs / 60_000 / circuito.periodoMin + circuito.fase) % 1 + 1) % 1;
         const angulo = 2 * Math.PI * fase;
         const distanciaM = 60 + 250 * Math.sin(Math.PI * fase);
+        const ultimaPassagemMs = instanteMs - fase * circuito.periodoMin * 60_000;
+        const proximaPassagemMs = ultimaPassagemMs + circuito.periodoMin * 60_000;
         return {
             id: circuito.id,
             nome: circuito.nome,
             latitude: local.latitude + distanciaM * Math.cos(angulo) / 111_000,
             longitude: local.longitude + distanciaM * Math.sin(angulo) / metrosPorGrauLon,
             distanciaM: Math.round(distanciaM),
-            minutosAtePassagem: Math.max(1, Math.ceil((1 - fase) * circuito.periodoMin))
+            minutosAtePassagem: Math.max(1, Math.ceil((proximaPassagemMs - instanteMs) / 60_000)),
+            ultimaPassagemMs,
+            proximaPassagemMs
         };
     });
 }
