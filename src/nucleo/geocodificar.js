@@ -4,13 +4,19 @@
 export function nomeComparavel(valor) {
     return String(valor || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
         .toLowerCase().replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
-        .replace(/^(rua|r|avenida|av|travessa|tv|trav|alameda|passagem|praca|estrada) /, '');
+        .replace(/^(rua|r|avenida|av|travessa|tv|trav|alameda|passagem|praca|estrada|rodovia|rod) /, '');
+}
+
+function bairroCompativel(bairro, distrito) {
+    if (!bairro || !distrito) return false;
+    return bairro === distrito || bairro.startsWith(`${distrito} `) || distrito.startsWith(`${bairro} `);
 }
 
 export function escolherCoordenadas(features, endereco) {
     const rua = nomeComparavel(endereco.rua);
     const cidade = nomeComparavel(endereco.cidade);
     const numero = nomeComparavel(endereco.numero);
+    const bairro = nomeComparavel(endereco.bairro);
     const candidatos = (features || []).map((feature) => {
         const props = feature.properties || {};
         const coordenadas = feature.geometry?.coordinates;
@@ -23,18 +29,23 @@ export function escolherCoordenadas(features, endereco) {
             nomeComparavel(props.street || props.name) !== rua) return null;
         const numeroEncontrado = nomeComparavel(props.housenumber);
         const cepEncontrado = String(props.postcode || '').replace(/\D/g, '');
+        const bairroEncontrado = nomeComparavel(props.district || props.suburb || props.neighbourhood);
+        const cepEspecifico = cepEncontrado && !/^\d{3}0{5}$/.test(cepEncontrado);
         if ((numeroEncontrado && numeroEncontrado !== numero) ||
-            (cepEncontrado && cepEncontrado !== endereco.cep) ||
-            (!numeroEncontrado && !cepEncontrado)) return null;
+            (cepEspecifico && cepEncontrado !== endereco.cep) ||
+            (!numeroEncontrado && !cepEspecifico && !bairroCompativel(bairro, bairroEncontrado)) ||
+            (!numeroEncontrado && bairro && bairroEncontrado && !bairroCompativel(bairro, bairroEncontrado))) return null;
         return {
             latitude, longitude,
             precisao: numeroEncontrado && numeroEncontrado === numero ? 'numero' : 'rua',
-            cepConfere: Boolean(cepEncontrado)
+            cepConfere: Boolean(cepEspecifico),
+            bairroConfere: bairroCompativel(bairro, bairroEncontrado)
         };
     }).filter(Boolean);
     candidatos.sort((a, b) =>
         Number(b.precisao === 'numero') - Number(a.precisao === 'numero') ||
-        Number(b.cepConfere) - Number(a.cepConfere));
+        Number(b.cepConfere) - Number(a.cepConfere) ||
+        Number(b.bairroConfere) - Number(a.bairroConfere));
     return candidatos[0] || null;
 }
 
@@ -46,20 +57,26 @@ export async function geocodificarEndereco(endereco) {
         countrycode: 'BR',
         limit: '10'
     });
-    let resposta = await fetch(`https://photon.komoot.io/structured?${params}`);
-    if (resposta.status === 400) {
-        // Alguns endereços são recusados pela consulta estruturada. A pesquisa
-        // textual usa os mesmos dados informados, sem alterar o endereço salvo.
-        const texto = `${endereco.rua} ${endereco.numero}, ${endereco.cidade}, Brasil`;
-        const alternativa = new URLSearchParams({ q: texto, countrycode: 'BR', limit: '10' });
-        resposta = await fetch(`https://photon.komoot.io/api?${alternativa}`);
-    }
-    if (!resposta.ok) {
+    const resposta = await fetch(`https://photon.komoot.io/structured?${params}`);
+    if (!resposta.ok && resposta.status !== 400) {
         const detalhe = resposta.status === 429
             ? 'O serviço de mapas atingiu o limite de consultas. Tente novamente mais tarde.'
             : `A busca no mapa falhou (HTTP ${resposta.status}). Tente novamente em instantes.`;
         throw new Error(detalhe);
     }
-    const dados = await resposta.json();
+    if (resposta.ok) {
+        const dados = await resposta.json();
+        const encontrado = escolherCoordenadas(dados.features, endereco);
+        if (encontrado) return encontrado;
+    }
+    // Photon nem sempre indexa o número na busca estruturada. A segunda consulta
+    // tenta o mesmo endereço em texto, mantendo a validação da cidade e da rua.
+    const texto = `${endereco.rua} ${endereco.numero}, ${endereco.cidade}, Brasil`;
+    const alternativa = new URLSearchParams({ q: texto, countrycode: 'BR', limit: '10' });
+    const alternativaResposta = await fetch(`https://photon.komoot.io/api?${alternativa}`);
+    if (!alternativaResposta.ok) {
+        throw new Error(`A busca no mapa falhou (HTTP ${alternativaResposta.status}). Tente novamente em instantes.`);
+    }
+    const dados = await alternativaResposta.json();
     return escolherCoordenadas(dados.features, endereco);
 }
