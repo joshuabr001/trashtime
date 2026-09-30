@@ -75,7 +75,10 @@ export function carregarPreferencias() {
             Number.isFinite(salvo.localCep.latitude) && Number.isFinite(salvo.localCep.longitude)) {
             estado.localCep = salvo.localCep;
         }
-        estado.configurado = salvo.configurado === true;
+        // CEPs antigos usavam uma coordenada aproximada que podia cair em outra rua.
+        // Pedimos reconfirmação uma vez para obter a posição pelo endereço completo.
+        estado.configurado = salvo.configurado === true &&
+            (!estado.localCep || estado.localCep.fonteCoordenadas === 'photon');
     } catch (erro) {
         // Navegador sem localStorage disponível: segue com os valores padrão
     }

@@ -2216,3 +2216,4 @@ button {
 .mapa-real__estado { margin: 0; padding: 10px 14px; background: var(--fundo, #f2f5f3); color: var(--texto, #163321); font-size: 13px; }
 .mapa-real__acoes { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 10px; background: var(--fundo); }
 .mapa-real__acoes .mapa-real__estado { flex: 1 1 200px; padding: 0; }
+.marcador-casa { display: grid; place-items: center; border-radius: 50%; background: #fff; border: 2px solid #155eef; box-shadow: 0 2px 8px #0005; font-size: 23px; line-height: 1; }

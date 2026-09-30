@@ -98,18 +98,19 @@ que é reativo, e daí a tela se atualiza sozinha.
 Tudo o que o morador escolhe fica guardado no aparelho.
 
 Na primeira abertura, informe o CEP, confira a rua e digite o número da residência.
-O app consulta a BrasilAPI CEP V2 para obter uma posição aproximada e abre o mapa
-de ruas nesse ponto. Três marcadores de caminhões aparecem perto do endereço da
+O app consulta a BrasilAPI CEP V2 para preencher o endereço e usa Photon para
+buscar a posição da rua e do número no OpenStreetMap. Um ícone de casa aparece
+no resultado encontrado. Se o serviço não confirmar a rua na cidade informada,
+o app pede para conferir os dados em vez de marcar outra região como residência.
+Essa busca envia rua, número e cidade ao serviço público Photon ao salvar o endereço.
+Quando o número não está cadastrado no mapa, o ponto representa apenas a rua
+e é identificado como aproximado. Três marcadores de caminhões aparecem perto do endereço da
 coleta apenas como **simulação visual**: eles não
 representam veículos ou rotas reais. O GPS opcional mostra onde está o celular,
 sem alterar o endereço da coleta. Para esse CEP, o calendário e os alertas de
 proximidade não têm dados cadastrados. Não há notificações de chegada com o app
-fechado. Alguns CEPs não possuem coordenadas na
-BrasilAPI; nesse caso, o app informa que não pode posicioná-los no mapa.
-Se a posição do CEP estiver errada, use **Ajustar ponto da casa no mapa** e toque
-no lugar correto. O ajuste fica salvo no navegador. Se estiver em casa, você pode
-primeiro usar **Mostrar onde estou agora** para centralizar o mapa e depois ajustar
-o ponto da casa; o GPS sozinho não altera o endereço cadastrado.
+ fechado. O Photon público é adequado para demonstração de baixo volume e pode
+não encontrar todos os endereços. O GPS sozinho não altera o endereço cadastrado.
 
 ## Modo de rastreamento real
 

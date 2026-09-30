@@ -24,12 +24,12 @@
             <label class="campo__rotulo" for="boas-vindas-numero">Número da casa</label>
             <input class="campo" id="boas-vindas-numero" type="text"
                    maxlength="20" placeholder="Ex.: 123 ou s/n" v-model="numero">
-            <p class="campo__rotulo">Confira a rua e o número. Depois, se o ponto da casa aparecer errado, ajuste-o tocando no mapa. Os caminhões são simulados.</p>
+            <p class="campo__rotulo">Confira a rua e o número. Vamos buscar a casa pelo endereço completo; os caminhões continuam simulados.</p>
         </template>
 
         <p v-if="erro" class="campo__rotulo" role="alert">{{ erro }}</p>
         <button class="botao-principal" :disabled="!enderecoEncontrado || buscando" @click="confirmar">
-            {{ edicao ? 'Salvar endereço da coleta' : 'Começar' }}
+            {{ buscando ? 'Localizando endereço…' : edicao ? 'Salvar endereço da coleta' : 'Começar' }}
         </button>
     </div>
 </template>
@@ -37,14 +37,15 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { estado } from '../estado/estado.js';
+import { geocodificarEndereco } from '../nucleo/geocodificar.js';
 
 const props = defineProps({ edicao: { type: Boolean, default: false } });
 const emit = defineEmits(['pronto']);
 
-const cep = ref(props.edicao && estado.localCep ? estado.localCep.cep : '');
-const enderecoEncontrado = ref(props.edicao && estado.localCep ? { ...estado.localCep } : null);
-const rua = ref(props.edicao && estado.localCep ? estado.localCep.rua || '' : '');
-const numero = ref(props.edicao && estado.localCep ? estado.localCep.numero || '' : '');
+const cep = ref(estado.localCep?.cep || '');
+const enderecoEncontrado = ref(props.edicao && estado.localCep?.fonteCoordenadas === 'photon' ? { ...estado.localCep } : null);
+const rua = ref(estado.localCep?.rua || '');
+const numero = ref(estado.localCep?.numero || '');
 const erro = ref('');
 const buscando = ref(false);
 
@@ -67,20 +68,14 @@ async function buscarCep() {
         const resposta = await fetch(`https://brasilapi.com.br/api/cep/v2/${codigo}`);
         if (!resposta.ok) throw new Error('CEP não encontrado. Confira os números.');
         const dados = await resposta.json();
-        const latitude = Number(dados.location?.coordinates?.latitude);
-        const longitude = Number(dados.location?.coordinates?.longitude);
-        if (!dados.location?.coordinates?.latitude || !dados.location?.coordinates?.longitude ||
-            !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-            throw new Error('Este CEP não tem coordenadas disponíveis. Tente outro CEP próximo.');
-        }
         if (cep.value.replace(/\D/g, '') !== codigo) return;
         enderecoEncontrado.value = {
-            cep: codigo, latitude, longitude,
+            cep: codigo,
             bairro: dados.neighborhood || 'Bairro não informado',
             cidade: dados.city || '', estado: dados.state || ''
         };
-        rua.value = dados.street || '';
-        numero.value = '';
+        rua.value = codigo === estado.localCep?.cep && rua.value ? rua.value : dados.street || '';
+        numero.value = codigo === estado.localCep?.cep ? numero.value : '';
     } catch (falha) {
         erro.value = falha.message || 'Não foi possível consultar o CEP. Tente novamente.';
     } finally {
@@ -88,7 +83,7 @@ async function buscarCep() {
     }
 }
 
-function confirmar() {
+async function confirmar() {
     if (!enderecoEncontrado.value) return;
     const ruaLimpa = rua.value.trim();
     const numeroLimpo = numero.value.trim();
@@ -96,9 +91,28 @@ function confirmar() {
         erro.value = 'Informe a rua e o número da residência (ou s/n).';
         return;
     }
-    estado.localCep = { ...enderecoEncontrado.value, rua: ruaLimpa, numero: numeroLimpo };
-    estado.endereco = `${ruaLimpa}, ${numeroLimpo} · ${enderecoEncontrado.value.bairro} · ${enderecoEncontrado.value.cidade}`;
-    estado.configurado = true;
-    emit('pronto');
+    buscando.value = true;
+    erro.value = '';
+    try {
+        const encontrado = await geocodificarEndereco({
+            ...enderecoEncontrado.value, rua: ruaLimpa, numero: numeroLimpo
+        });
+        if (!encontrado) {
+            erro.value = 'Não encontrei essa rua na cidade informada. Confira o endereço; não vou marcar outra região como sua casa.';
+            return;
+        }
+        estado.localCep = {
+            ...enderecoEncontrado.value, rua: ruaLimpa, numero: numeroLimpo,
+            latitude: encontrado.latitude, longitude: encontrado.longitude,
+            precisao: encontrado.precisao, fonteCoordenadas: 'photon'
+        };
+        estado.endereco = `${ruaLimpa}, ${numeroLimpo} · ${enderecoEncontrado.value.bairro} · ${enderecoEncontrado.value.cidade}`;
+        estado.configurado = true;
+        emit('pronto');
+    } catch (falha) {
+        erro.value = falha.message || 'Não foi possível localizar o endereço. Tente novamente.';
+    } finally {
+        buscando.value = false;
+    }
 }
 </script>
