@@ -3,7 +3,7 @@
         <header class="cabecalho cabecalho--simples">
             <div class="cabecalho__texto">
                 <h1 class="cabecalho__titulo">Configurações</h1>
-                <p class="cabecalho__subtitulo">Região, alertas e lembretes</p>
+                <p class="cabecalho__subtitulo">CEP, alertas e lembretes</p>
             </div>
         </header>
 
@@ -13,19 +13,10 @@
                 <p class="linha__texto">{{ estado.localCep.bairro }} · {{ estado.localCep.cidade }}/{{ estado.localCep.estado }}</p>
                 <p class="linha__texto">Localização aproximada; caminhões do mapa são simulados.</p>
             </div>
-            <p class="secao__rotulo">SUA REGIÃO</p>
-            <div class="chips chips--coluna">
-                <button class="chip" v-for="(regiao, id) in REGIOES" :key="id"
-                        :class="{ 'chip--ativo': !estado.localCep && id === estado.regiao }" @click="trocarRegiao(id)">
-                    {{ regiao.nome }}
-                    <span class="chip__detalhe">{{ regiao.endereco }}</span>
-                </button>
-            </div>
-
             <div class="cartao" style="margin-top: 10px">
                 <div class="linha">
                     <div>
-                        <p class="linha__titulo">Seu endereço</p>
+                        <p class="linha__titulo">Sua localização</p>
                         <p class="linha__texto">{{ enderecoAtual }}</p>
                     </div>
                     <button class="botao-claro" @click="$emit('alterar-endereco')">Alterar</button>
@@ -99,9 +90,8 @@
 
 <script setup>
 import { computed } from 'vue';
-import { REGIOES } from '../dados/regioes.js';
 import { INTERRUPTORES, DISTANCIAS, HORAS_LEMBRETE } from '../dados/listas.js';
-import { estado, regiaoAtual, trocarRegiao } from '../estado/estado.js';
+import { estado, regiaoAtual } from '../estado/estado.js';
 import { temaAtual, trocarTema } from '../estado/tema.js';
 
 defineEmits(['alterar-endereco']);

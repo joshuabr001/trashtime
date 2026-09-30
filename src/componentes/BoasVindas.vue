@@ -6,36 +6,17 @@
             </span>
             <h1 class="boas-vindas__titulo">TrashTime</h1>
             <p class="boas-vindas__texto">
-                Acompanhe a coleta de lixo do seu bairro em tempo real e saiba exatamente
-                quando descer o lixo.
+                Digite seu CEP para encontrar sua região no mapa.
             </p>
         </div>
 
-        <p class="campo__rotulo">Onde você mora?</p>
-        <div class="chips chips--coluna">
-            <button class="chip" v-for="(regiao, id) in REGIOES" :key="id"
-                    :class="{ 'chip--ativo': !usarCep && id === escolhida }" @click="usarCep = false; escolhida = id">
-                {{ regiao.nome }}
-                <span class="chip__detalhe">{{ regiao.comum.length }} coletas comuns por semana</span>
-            </button>
-            <button class="chip" :class="{ 'chip--ativo': usarCep }" @click="usarCep = true">
-                Meu bairro não está na lista
-                <span class="chip__detalhe">Encontrar pelo CEP no mapa</span>
-            </button>
-        </div>
+        <label class="campo__rotulo" for="boas-vindas-cep">Seu CEP</label>
+        <input class="campo" id="boas-vindas-cep" type="text" inputmode="numeric"
+               autocomplete="postal-code" maxlength="9" placeholder="00000-000" v-model="cep"
+               @keyup.enter="confirmar">
+        <p class="campo__rotulo" role="status">{{ erroCep || 'A posição é aproximada. Os caminhões próximos são uma simulação.' }}</p>
 
-        <template v-if="usarCep">
-            <label class="campo__rotulo" for="boas-vindas-cep">Seu CEP</label>
-            <input class="campo" id="boas-vindas-cep" type="text" inputmode="numeric"
-                   autocomplete="postal-code" maxlength="9" placeholder="00000-000" v-model="cep">
-            <p class="campo__rotulo">{{ erroCep || 'A posição encontrada é aproximada. Os caminhões próximos serão simulados.' }}</p>
-        </template>
-
-        <label v-if="!usarCep" class="campo__rotulo" for="boas-vindas-endereco">Rua e número (opcional)</label>
-        <input v-if="!usarCep" class="campo" id="boas-vindas-endereco" type="text" v-model="endereco"
-               :placeholder="REGIOES[escolhida || estado.regiao].endereco">
-
-        <button class="botao-principal" :disabled="salvando || (!usarCep && !escolhida)" @click="confirmar">
+        <button class="botao-principal" :disabled="salvando" @click="confirmar">
             {{ salvando ? 'Buscando CEP…' : edicao ? 'Salvar' : 'Começar' }}
         </button>
     </div>
@@ -43,21 +24,16 @@
 
 <script setup>
 import { ref } from 'vue';
-import { REGIOES } from '../dados/regioes.js';
-import { estado, trocarRegiao } from '../estado/estado.js';
+import { estado } from '../estado/estado.js';
 
 const props = defineProps({ edicao: { type: Boolean, default: false } });
 const emit = defineEmits(['pronto']);
 
-const escolhida = ref(props.edicao ? estado.regiao : null);
-const endereco = ref(props.edicao ? estado.endereco : '');
-const usarCep = ref(Boolean(props.edicao && estado.localCep));
 const cep = ref(props.edicao && estado.localCep ? estado.localCep.cep : '');
 const erroCep = ref('');
 const salvando = ref(false);
 
 async function confirmar() {
-    if (usarCep.value) {
         const numero = cep.value.replace(/\D/g, '');
         if (numero.length !== 8) {
             erroCep.value = 'Digite um CEP com 8 números.';
@@ -88,14 +64,5 @@ async function confirmar() {
         } finally {
             salvando.value = false;
         }
-        return;
-    }
-    if (!escolhida.value) {
-        return;
-    }
-    estado.endereco = endereco.value.trim();
-    estado.configurado = true;
-    trocarRegiao(escolhida.value);
-    emit('pronto');
 }
 </script>

@@ -16,12 +16,6 @@
         </div>
 
         <div v-else class="faixa faixa--principal">
-            <div class="chips">
-                <button class="chip" v-for="(regiao, id) in REGIOES" :key="id"
-                        :class="{ 'chip--ativo': id === estado.regiao }"
-                        @click="trocarRegiao(id)">{{ regiao.nome }}</button>
-            </div>
-
             <div class="mes">
                 <button class="botao-mes" aria-label="Mês anterior" @click="andarMes(-1)">‹</button>
                 <div class="mes__texto">
@@ -108,9 +102,8 @@
 
 <script setup>
 import { computed } from 'vue';
-import { REGIOES } from '../dados/regioes.js';
 import { MESES, MESES_MIN, DIAS_SEMANA, DIAS_CURTOS } from '../dados/listas.js';
-import { estado, regiaoAtual, trocarRegiao, irPara } from '../estado/estado.js';
+import { estado, regiaoAtual, irPara } from '../estado/estado.js';
 import { historicoDoDia, relatoDoDia } from '../estado/frota.js';
 import { chaveData, tipoDeColeta, janelaDe, doisDigitos } from '../nucleo/datas.js';
 

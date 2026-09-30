@@ -97,10 +97,9 @@ que é reativo, e daí a tela se atualiza sozinha.
 
 Tudo o que o morador escolhe fica guardado no aparelho.
 
-Se o bairro não estiver entre os nove da demonstração, escolha **Meu bairro não
-está na lista** e informe um CEP. O app consulta a BrasilAPI CEP V2 para obter
+Na primeira abertura, informe um CEP. O app consulta a BrasilAPI CEP V2 para obter
 uma posição aproximada e abre o mapa de ruas nesse ponto. Três marcadores de
-caminhões aparecem nas proximidades apenas como **simulação visual**: eles não
+caminhões aparecem perto do CEP ou do GPS exibido apenas como **simulação visual**: eles não
 representam veículos ou rotas reais. Para esse CEP, o calendário e os alertas de
 proximidade não têm dados cadastrados. Alguns CEPs não possuem coordenadas na
 BrasilAPI; nesse caso, o app informa que não pode posicioná-los no mapa.

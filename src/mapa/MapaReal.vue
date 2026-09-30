@@ -1,11 +1,12 @@
 <template>
     <div class="mapa-real">
-        <div ref="elemento" class="mapa-real__canvas" role="application" aria-label="Mapa de Belém com posições recebidas da frota"></div>
+        <div ref="elemento" class="mapa-real__canvas" role="application" aria-label="Mapa de ruas com sua localização e caminhões simulados"></div>
         <div class="mapa-real__acoes">
             <button class="botao-claro" :disabled="!contextoSeguro" @click="localizar">Mostrar minha localização</button>
             <p class="mapa-real__estado" role="status">{{ localizacaoMensagem }}</p>
         </div>
         <p class="mapa-real__estado" v-if="mostrarVeiculos" role="status">{{ mensagem }}</p>
+        <p class="mapa-real__estado" v-else-if="estado.localCep" role="status">Os três caminhões laranja são ilustrativos e aparecem perto do CEP ou da localização mostrada. Não são veículos rastreados.</p>
     </div>
 </template>
 
@@ -32,6 +33,21 @@ let precisaoUsuario;
 let marcadorCep;
 const caminhoesDemo = [];
 
+function posicionarCaminhoesDemo(ponto) {
+    for (const marcador of caminhoesDemo) marcador.remove();
+    caminhoesDemo.length = 0;
+    if (props.mostrarVeiculos || !estado.localCep) return;
+    // Distâncias curtas mantêm os marcadores visíveis inclusive após o zoom do GPS.
+    for (const [indice, deslocamento] of [[0.0009, 0.0005], [-0.0008, 0.0008], [0.0003, -0.001]].entries()) {
+        const coordenada = [ponto[0] + deslocamento[0], ponto[1] + deslocamento[1]];
+        caminhoesDemo.push(L.circleMarker(coordenada, {
+            radius: 12, color: '#7A4600', weight: 3, fillColor: '#FFC85C', fillOpacity: 1
+        }).addTo(mapa).bindTooltip(`🚛 ${indice + 1} · simulado`, {
+            permanent: true, direction: 'top', offset: [0, -8]
+        }));
+    }
+}
+
 function mostrarCep() {
     if (!mapa) return;
     if (marcadorCep) marcadorCep.remove();
@@ -48,15 +64,7 @@ function mostrarCep() {
     marcadorCep = L.circleMarker(ponto, {
         radius: 9, color: '#155EEF', weight: 3, fillColor: '#4C8DFF', fillOpacity: 1
     }).addTo(mapa).bindTooltip(`CEP informado · ${bairro}`);
-    if (!props.mostrarVeiculos) {
-        for (const [indice, deslocamento] of [[0.007, 0.004], [-0.005, 0.009], [0.003, -0.008]].entries()) {
-            caminhoesDemo.push(L.circleMarker([
-                latitude + deslocamento[0], longitude + deslocamento[1]
-            ], {
-                radius: 8, color: '#8A5800', weight: 3, fillColor: '#FFC85C', fillOpacity: 1
-            }).addTo(mapa).bindTooltip(`Caminhão ${indice + 1} · posição simulada`));
-        }
-    }
+    posicionarCaminhoesDemo(ponto);
 }
 
 watch(() => estado.localCep, mostrarCep);
@@ -86,6 +94,7 @@ function localizar() {
             }
         }
         mapa.setView(ponto, 16);
+        posicionarCaminhoesDemo(ponto);
         localizacaoMensagem.value = `Localização obtida · precisão aproximada de ${Math.round(accuracy)} m.`;
     }, (erro) => {
         localizacaoMensagem.value = erro.code === 1
