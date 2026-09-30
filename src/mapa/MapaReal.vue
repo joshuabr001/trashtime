@@ -17,8 +17,12 @@ import { onMounted, onBeforeUnmount, onActivated, onDeactivated, ref, watch } fr
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { estado } from '../estado/estado.js';
+import { caminhoesSimulados } from '../nucleo/simulacaoCep.js';
 
-const props = defineProps({ mostrarVeiculos: { type: Boolean, default: true } });
+const props = defineProps({
+    mostrarVeiculos: { type: Boolean, default: true },
+    instante: { type: Number, default: () => Date.now() }
+});
 const emit = defineEmits(['atualizar']);
 const elemento = ref(null);
 const mensagem = ref('Consultando posições da frota…');
@@ -46,18 +50,19 @@ const iconeRua = L.divIcon({
     iconSize: [36, 36], iconAnchor: [18, 18]
 });
 
-function posicionarCaminhoesDemo(ponto) {
-    for (const marcador of caminhoesDemo) marcador.remove();
-    caminhoesDemo.length = 0;
-    if (props.mostrarVeiculos || !estado.localCep) return;
-    // Distâncias curtas mantêm os marcadores visíveis inclusive após o zoom do GPS.
-    for (const [indice, deslocamento] of [[0.0009, 0.0005], [-0.0008, 0.0008], [0.0003, -0.001]].entries()) {
-        const coordenada = [ponto[0] + deslocamento[0], ponto[1] + deslocamento[1]];
-        caminhoesDemo.push(L.circleMarker(coordenada, {
-            radius: 12, color: '#7A4600', weight: 3, fillColor: '#FFC85C', fillOpacity: 1
-        }).addTo(mapa).bindTooltip(`🚛 ${indice + 1} · simulado`, {
-            permanent: true, direction: 'top', offset: [0, -8]
-        }));
+function posicionarCaminhoesDemo() {
+    if (!mapa || props.mostrarVeiculos || !estado.localCep) return;
+    for (const [indice, caminhao] of caminhoesSimulados(estado.localCep, props.instante).entries()) {
+        const coordenada = [caminhao.latitude, caminhao.longitude];
+        if (!caminhoesDemo[indice]) {
+            caminhoesDemo[indice] = L.circleMarker(coordenada, {
+                radius: 12, color: '#7A4600', weight: 3, fillColor: '#FFC85C', fillOpacity: 1
+            }).addTo(mapa).bindTooltip(`🚛 ${caminhao.nome} · simulado`, {
+                permanent: true, direction: 'top', offset: [0, -8]
+            });
+        } else {
+            caminhoesDemo[indice].setLatLng(coordenada);
+        }
     }
 }
 
@@ -80,11 +85,12 @@ function mostrarCep() {
         .addTo(mapa).bindTooltip(`${rotulo} · ${bairro}`, {
             permanent: true, direction: 'bottom'
         });
-    posicionarCaminhoesDemo(ponto);
+    posicionarCaminhoesDemo();
     mostrandoGps.value = false;
 }
 
 watch(() => estado.localCep, mostrarCep);
+watch(() => props.instante, posicionarCaminhoesDemo);
 
 function localizar() {
     if (!contextoSeguro) return;

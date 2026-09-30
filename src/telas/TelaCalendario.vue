@@ -10,7 +10,7 @@
         <div v-if="estado.localCep" class="faixa faixa--principal">
             <div class="cartao">
                 <p class="linha__titulo">{{ estado.localCep.bairro }} · CEP {{ estado.localCep.cep }}</p>
-                <p class="linha__texto">Ainda não há dias e horários de coleta cadastrados para este CEP. Os caminhões no mapa são apenas uma simulação.</p>
+                <p class="linha__texto">Ainda não há dias e horários de coleta confirmados para este CEP. Se a aba Mapa mostrar um calendário do bairro, ele é ilustrativo. Os caminhões no mapa também são simulados.</p>
                 <button class="botao-claro" @click="irPara('config')">Alterar localização</button>
             </div>
         </div>
