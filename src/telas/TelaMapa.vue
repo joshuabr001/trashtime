@@ -18,9 +18,9 @@
                         <svg class="icone" width="21" height="21"><use href="#ic-caminhao" /></svg>
                     </div>
                     <div>
-                        <p class="rotulo">{{ estado.localCep ? 'Caminhões simulados perto da casa' : rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'Caminhões no mapa' : rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
                         <p class="numerao">{{ estado.localCep ? 3 : rastreamentoReal ? contagemReal : mapaGeografico ? 'GPS' : emRota + ' de ' + frota.length }}</p>
-                        <p class="rotulo">{{ estado.localCep ? 'posições ilustrativas' : rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'simulados na região' : rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
                     </div>
                 </div>
                 <div class="cartao-status">
@@ -28,7 +28,7 @@
                         <svg class="icone" width="20" height="20"><use href="#ic-calendario" /></svg>
                     </div>
                     <div>
-                        <p class="rotulo">{{ estado.localCep ? 'Próxima coleta no bairro' : rastreamentoReal ? 'Próxima coleta · previsão ilustrativa' : 'Próxima coleta' }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'Próxima coleta · exemplo' : rastreamentoReal ? 'Próxima coleta · previsão ilustrativa' : 'Próxima coleta' }}</p>
                         <p class="destaque">{{ proxima.dia }}</p>
                         <p class="rotulo">{{ proxima.hora }}</p>
                     </div>
@@ -43,24 +43,25 @@
             <MapaReal v-if="estado.localCep || rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal && !estado.localCep" :instante="agora" @atualizar="receberAtualizacao" />
             <MapaBelem v-else />
 
-            <div v-if="estado.localCep" class="cartao cartao-mapa">
-                <h2 class="cartao-mapa__titulo">Próxima coleta</h2>
-                <p v-if="regiaoCep" class="cartao-mapa__texto">{{ proxima.dia }} · {{ proxima.hora }}. Calendário ilustrativo de {{ REGIOES[regiaoCep].nome }}.</p>
-                <p v-else class="cartao-mapa__texto">Ainda não há dias e horários cadastrados para {{ estado.localCep.bairro }}. Não é possível prever a coleta neste endereço.</p>
+            <div v-if="estado.localCep" class="cartao-caminhao cartao-caminhao--cep">
+                <span class="cartao-caminhao__ponto"></span>
+                <div class="cartao-caminhao__info">
+                    <p class="cartao-caminhao__nome">{{ proximoSimulado.nome }} · simulação</p>
+                    <p class="cartao-caminhao__setor">Próxima passagem ilustrativa na região às {{ hora(proximoSimulado.proximaPassagemMs) }}</p>
+                    <p class="cartao-caminhao__eta">Em cerca de {{ proximoSimulado.minutosAtePassagem }} min</p>
+                </div>
+                <button class="botao-seguir" :aria-expanded="detalhesCaminhoes" @click="detalhesCaminhoes = !detalhesCaminhoes">{{ detalhesCaminhoes ? 'Ocultar' : 'Ver 3' }}</button>
             </div>
-
-            <div v-if="estado.localCep" class="cartao cartao-mapa">
-                <h2 class="cartao-mapa__titulo">Caminhões no mapa · demonstração</h2>
-                <p class="cartao-mapa__texto">Na simulação, {{ proximoSimulado.nome }} é o próximo a passar pela região: {{ hora(proximoSimulado.proximaPassagemMs) }} (em cerca de {{ proximoSimulado.minutosAtePassagem }} min).</p>
+            <div v-if="estado.localCep && detalhesCaminhoes" class="cartao cartao-mapa">
+                <h2 class="cartao-mapa__titulo">Passagens da demonstração</h2>
                 <div class="cartao-mapa__veiculo" v-for="caminhao in caminhoesCep" :key="caminhao.id">
                     <div class="cartao-mapa__veiculo-info">
                         <p class="linha__titulo">{{ caminhao.nome }}</p>
-                        <p class="linha__texto">Passou na simulação às {{ hora(caminhao.ultimaPassagemMs) }}</p>
-                        <p class="linha__texto">Próxima volta às {{ hora(caminhao.proximaPassagemMs) }} · cerca de {{ caminhao.distanciaM }} m do ponto</p>
+                        <p class="linha__texto">Passou às {{ hora(caminhao.ultimaPassagemMs) }} · próxima volta às {{ hora(caminhao.proximaPassagemMs) }}</p>
                     </div>
-                    <span class="marca marca--comum cartao-mapa__tempo">Em {{ caminhao.minutosAtePassagem }} min</span>
+                    <span class="marca marca--comum cartao-mapa__tempo">{{ caminhao.minutosAtePassagem }} min</span>
                 </div>
-                <p class="cartao-mapa__nota">Essas passagens se repetem apenas na demonstração. Não indicam se o caminhão de coleta passou pela sua rua nem quando chegará de verdade.</p>
+                <p class="cartao-mapa__nota">Horários e veículos simulados. Eles não confirmam a passagem da coleta real pela sua rua.</p>
             </div>
 
             <div v-if="!estado.localCep">
@@ -84,13 +85,17 @@
             </div>
         </div>
 
-        <div class="faixa faixa--lado" v-if="!estado.localCep">
+        <div class="faixa faixa--lado">
             <div class="secao">
                 <div class="secao__cabecalho">
                     <h2 class="secao__titulo">Próximas coletas</h2>
                     <button class="link" @click="irPara('calendario')">Ver calendário ›</button>
                 </div>
-                <div class="lista">
+                <div v-if="estado.localCep && !regiaoCep" class="cartao cartao-mapa cartao-mapa--vazio">
+                    <p class="cartao-mapa__texto">Ainda não há horários de coleta cadastrados para {{ estado.localCep.bairro }}.</p>
+                </div>
+                <p v-if="estado.localCep && regiaoCep" class="secao__nota">Calendário ilustrativo do bairro; confirme os horários com o serviço de coleta.</p>
+                <div v-if="proximasDuas.length" class="lista">
                     <div class="item-coleta" v-for="item in proximasDuas" :key="item.chave">
                         <div class="etiqueta-data"
                              :style="{ background: item.corFundo, color: item.corTexto }">
@@ -104,7 +109,7 @@
                             </div>
                             <div class="item-coleta__linha">
                                 <svg class="icone" width="12" height="12"><use href="#ic-pino" /></svg>
-                                <span class="item-coleta__bairro">{{ regiaoAtual.nome }} · seu bairro</span>
+                                <span class="item-coleta__bairro">{{ estado.localCep ? REGIOES[regiaoCep].nome : regiaoAtual.nome }} · {{ estado.localCep ? 'bairro do endereço' : 'seu bairro' }}</span>
                             </div>
                         </div>
                         <span class="marca" :class="item.seletiva ? 'marca--seletiva' : 'marca--comum'">
@@ -119,7 +124,7 @@
                 <div>
                     <p class="banner__titulo">Vamos deixar nossa cidade mais limpa</p>
                     <p class="banner__texto">
-                        Separe o reciclável do orgânico e leve para a calçada até 30 min antes.
+                        {{ estado.localCep && !regiaoCep ? 'Separe o reciclável do orgânico e consulte o horário de coleta do seu bairro.' : 'Separe o reciclável do orgânico e leve para a calçada até 30 min antes.' }}
                     </p>
                 </div>
             </div>
@@ -163,6 +168,7 @@ const rastreamentoReal = Boolean(import.meta.env.VITE_API_URL);
 const contagemReal = ref(0);
 const simulados = ref(0);
 const mapaGeografico = ref(false);
+const detalhesCaminhoes = ref(false);
 const agora = ref(Date.now());
 let relogioCep = null;
 
@@ -211,16 +217,20 @@ const proxima = computed(() => {
     };
 });
 
-const proximasDuas = computed(() => proximasColetas(estado.regiao, 2).map((item) => {
+const proximasDuas = computed(() => {
+    const id = estado.localCep ? regiaoCep.value : estado.regiao;
+    if (!id) return [];
+    return proximasColetas(id, 2).map((item) => {
     const seletiva = item.tipo === 'seletiva';
     return {
         chave: chaveData(item.data) + item.tipo,
         seletiva,
         rotulo: item.hoje ? 'HOJE' : DIAS_CURTOS[item.data.getDay()],
         data: doisDigitos(item.data.getDate()) + '/' + doisDigitos(item.data.getMonth() + 1),
-        hora: janelaDe(estado.regiao, item.tipo),
+        hora: janelaDe(id, item.tipo),
         corFundo: seletiva ? 'var(--ambar-claro)' : 'var(--verde-claro)',
         corTexto: seletiva ? 'var(--ambar-escuro)' : 'var(--verde-forte)'
     };
-}));
+    });
+});
 </script>

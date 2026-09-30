@@ -4,11 +4,9 @@
         <div class="mapa-real__acoes">
             <button class="botao-claro" :disabled="!contextoSeguro" @click="localizar">Mostrar onde estou agora</button>
             <button v-if="estado.localCep && mostrandoGps" class="botao-claro" @click="voltarParaCasa">Voltar ao endereço da coleta</button>
-            <p v-if="estado.localCep" class="mapa-real__estado" role="status">{{ estado.localCep.precisao === 'numero' ? 'Casa localizada pelo endereço completo.' : estado.localCep.precisao === 'instituicao' ? 'Local identificado pela instituição associada ao CEP.' : 'Rua localizada; o número da casa não consta no mapa, então o ponto é aproximado.' }}</p>
-            <p class="mapa-real__estado" role="status">{{ localizacaoMensagem }}</p>
+            <p v-if="localizacaoMensagem" class="mapa-real__estado" role="status">{{ localizacaoMensagem }}</p>
         </div>
         <p class="mapa-real__estado" v-if="mostrarVeiculos" role="status">{{ mensagem }}</p>
-        <p class="mapa-real__estado" v-else-if="estado.localCep" role="status">Os três caminhões laranja são ilustrativos e ficam perto do endereço da coleta. Não são veículos rastreados.</p>
     </div>
 </template>
 
@@ -27,9 +25,7 @@ const emit = defineEmits(['atualizar']);
 const elemento = ref(null);
 const mensagem = ref('Consultando posições da frota…');
 const contextoSeguro = window.isSecureContext && 'geolocation' in navigator;
-const localizacaoMensagem = ref(contextoSeguro
-    ? 'O endereço da coleta permanece salvo mesmo se você mostrar onde está agora.'
-    : 'Para usar sua localização no celular, abra o app por HTTPS. O endereço HTTP da rede local não permite acesso ao GPS.');
+const localizacaoMensagem = ref('');
 const marcadores = new Map();
 let mapa;
 let relogio;
@@ -93,7 +89,10 @@ watch(() => estado.localCep, mostrarCep);
 watch(() => props.instante, posicionarCaminhoesDemo);
 
 function localizar() {
-    if (!contextoSeguro) return;
+    if (!contextoSeguro) {
+        localizacaoMensagem.value = 'Para usar sua localização, abra o app por HTTPS.';
+        return;
+    }
     localizacaoMensagem.value = 'Obtendo sua localização…';
     navigator.geolocation.getCurrentPosition((posicao) => {
         if (!mapa) return;
@@ -118,7 +117,7 @@ function localizar() {
         }
         mapa.setView(ponto, 16);
         mostrandoGps.value = true;
-        localizacaoMensagem.value = `Localização atual obtida · precisão aproximada de ${Math.round(accuracy)} m. O endereço da coleta não mudou.`;
+        localizacaoMensagem.value = `Localização atual obtida · precisão aproximada de ${Math.round(accuracy)} m.`;
     }, (erro) => {
         localizacaoMensagem.value = erro.code === 1
             ? 'Permissão de localização negada. Ative-a nas configurações do navegador.'

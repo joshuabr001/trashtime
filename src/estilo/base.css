@@ -2261,12 +2261,25 @@ button {
 
 .cartoes-status--cep .cartao-status > div:last-child { min-width: 0; }
 
+#tela-mapa .cartao-caminhao--cep { margin-top: 14px; min-width: 0; }
+.cartao-caminhao--cep .cartao-caminhao__ponto { background: var(--verde-forte); }
+.cartao-caminhao--cep .cartao-caminhao__info { min-width: 0; cursor: default; }
+.cartao-caminhao--cep .cartao-caminhao__setor { line-height: 1.35; }
+#tela-mapa .cartao-caminhao--cep + .cartao-mapa { margin-top: 10px; }
+#tela-mapa .cartao-mapa--vazio { margin: 12px 0 0; }
+#tela-mapa .cartao-mapa--vazio .cartao-mapa__texto { margin: 0; }
+.secao__nota { margin: 8px 0 0; color: var(--texto-suave); font-size: 11.5px; line-height: 1.35; }
+
 @media (max-width: 420px) {
-    .cartoes-status--cep { flex-direction: column; }
-    .cartoes-status--cep .cartao-status { width: 100%; }
+    .cartoes-status--cep .cartao-status { min-width: 0; padding: 8px; gap: 7px; }
+    .cartoes-status--cep .cartao-status__icone { width: 32px; height: 32px; }
+    .cartoes-status--cep .rotulo { font-size: 10px; line-height: 1.2; }
+    .cartoes-status--cep .destaque { font-size: 15px; }
 }
 
 @media (min-width: 900px) {
     #tela-mapa .mapa-real + .cartao-mapa,
     #tela-mapa .cartao-mapa + .cartao-mapa { margin-top: 0; }
+    #tela-mapa .cartao-caminhao--cep,
+    #tela-mapa .cartao-caminhao--cep + .cartao-mapa { margin-top: 0; }
 }
