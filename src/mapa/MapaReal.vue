@@ -10,9 +10,10 @@
 </template>
 
 <script setup>
-import { onMounted, onBeforeUnmount, onActivated, onDeactivated, ref } from 'vue';
+import { onMounted, onBeforeUnmount, onActivated, onDeactivated, ref, watch } from 'vue';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { estado } from '../estado/estado.js';
 
 const props = defineProps({ mostrarVeiculos: { type: Boolean, default: true } });
 const emit = defineEmits(['atualizar']);
@@ -28,6 +29,37 @@ let relogio;
 let ativo = false;
 let marcadorUsuario;
 let precisaoUsuario;
+let marcadorCep;
+const caminhoesDemo = [];
+
+function mostrarCep() {
+    if (!mapa) return;
+    if (marcadorCep) marcadorCep.remove();
+    marcadorCep = null;
+    for (const marcador of caminhoesDemo) marcador.remove();
+    caminhoesDemo.length = 0;
+    if (!estado.localCep) {
+        mapa.setView([-1.4558, -48.4902], 13);
+        return;
+    }
+    const { latitude, longitude, bairro } = estado.localCep;
+    const ponto = [latitude, longitude];
+    mapa.setView(ponto, 14);
+    marcadorCep = L.circleMarker(ponto, {
+        radius: 9, color: '#155EEF', weight: 3, fillColor: '#4C8DFF', fillOpacity: 1
+    }).addTo(mapa).bindTooltip(`CEP informado · ${bairro}`);
+    if (!props.mostrarVeiculos) {
+        for (const [indice, deslocamento] of [[0.007, 0.004], [-0.005, 0.009], [0.003, -0.008]].entries()) {
+            caminhoesDemo.push(L.circleMarker([
+                latitude + deslocamento[0], longitude + deslocamento[1]
+            ], {
+                radius: 8, color: '#8A5800', weight: 3, fillColor: '#FFC85C', fillOpacity: 1
+            }).addTo(mapa).bindTooltip(`Caminhão ${indice + 1} · posição simulada`));
+        }
+    }
+}
+
+watch(() => estado.localCep, mostrarCep);
 
 function localizar() {
     if (!contextoSeguro) return;
@@ -118,6 +150,7 @@ onMounted(() => {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }).addTo(mapa);
+    mostrarCep();
     if (props.mostrarVeiculos) iniciar();
 });
 

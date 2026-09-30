@@ -5,7 +5,10 @@ um sistema autorizado as envia. Este repositório não tem acesso à frota real.
 
 ## Desenvolvimento
 
-1. Crie um banco PostgreSQL chamado `trashtime` e um usuário com permissão nele.
+1. Inicie o PostgreSQL. Se tiver Docker, execute `docker compose up -d postgres`
+   na raiz do projeto. Esse `compose.yaml` cria um banco **somente para
+   desenvolvimento**, acessível em `localhost:5432`. Também é possível usar
+   uma instalação própria ou um PostgreSQL hospedado.
 2. Copie `.env.example` para `.env` nesta pasta e preencha `DATABASE_URL` e
    `INGEST_API_KEY` com um segredo aleatório de pelo menos 24 caracteres.
 3. Execute nesta pasta:
@@ -15,6 +18,10 @@ npm install
 npm run migrate
 npm run dev
 ```
+
+Em outro terminal, execute `npm run smoke` na pasta `api/` para conferir a
+gravação e consulta de uma posição e a persistência de um relato. O teste grava
+dados fictícios no banco. A migração é repetível e agora cria também `reports`.
 
 A API abre em `http://localhost:3000`. Para ativar o mapa real no frontend,
 adicione `VITE_API_URL=http://localhost:3000` ao `.env.local` da raiz e execute
@@ -65,6 +72,28 @@ o segredo; nunca coloque esse segredo no frontend ou no Git.
 `GET /api/vehicles` devolve os veículos com a posição mais recente, ou
 `latitude` e `longitude` nulos se ainda não receberam nenhuma. `online` só
 é verdadeiro quando a posição tem no máximo cinco minutos.
+
+## Relatos
+
+Com `VITE_API_URL` configurada, o formulário envia `POST /api/reports` com
+`requestId` (UUID v4), `type`, `region`, `location` e `description`. A API valida
+esses campos, grava o relato no PostgreSQL e devolve `protocol`, `createdAt` e
+`status`. Repetir a mesma requisição com o mesmo `requestId` devolve o mesmo
+protocolo, sem criar outro relato. Uma cópia continua salva no aparelho para o
+morador consultar. Sem API configurada, o relato continua somente local.
+
+Os relatos são recebidos **pelo projeto**, não pela prefeitura. Este protótipo
+não tem encaminhamento oficial nem painel de gestão dos relatos.
+
+## Preparação para hospedagem
+
+O `Dockerfile` desta pasta permite hospedar a API em um serviço que execute
+contêineres. Configure `DATABASE_URL`, `INGEST_API_KEY` (mínimo 24 caracteres),
+`FRONTEND_ORIGIN` (URL HTTPS do site) e `PORT` conforme o serviço. Execute a
+migração `node scripts/migrate.mjs` com `DATABASE_URL` configurada antes de
+liberar a API. A URL pública HTTPS da API deve ser colocada em `VITE_API_URL`
+no build do frontend. O banco do `compose.yaml` usa senha de desenvolvimento;
+não o publique na internet.
 
 O mapa usa as imagens públicas do OpenStreetMap apenas para desenvolvimento e
 piloto pequeno. Para produção, escolha um serviço de mapas com capacidade e

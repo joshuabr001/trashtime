@@ -82,7 +82,7 @@ function avancarCaminhoes() {
 }
 
 function verificarProximidade() {
-    if (!estado.config.proximidade) {
+    if (!estado.config.proximidade || estado.localCep) {
         return;
     }
 

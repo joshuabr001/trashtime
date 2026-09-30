@@ -26,6 +26,7 @@ export const estado = reactive({
     lidos: [],
     relatos: [],
     endereco: '',
+    localCep: null,
     configurado: false,
     contadorProtocolo: 1,
     config: {
@@ -70,6 +71,10 @@ export function carregarPreferencias() {
         if (typeof salvo.endereco === 'string') {
             estado.endereco = salvo.endereco;
         }
+        if (salvo.localCep && /^\d{8}$/.test(salvo.localCep.cep) &&
+            Number.isFinite(salvo.localCep.latitude) && Number.isFinite(salvo.localCep.longitude)) {
+            estado.localCep = salvo.localCep;
+        }
         estado.configurado = salvo.configurado === true;
     } catch (erro) {
         // Navegador sem localStorage disponível: segue com os valores padrão
@@ -85,6 +90,7 @@ export function salvarPreferencias() {
             relatos: estado.relatos,
             contadorProtocolo: estado.contadorProtocolo,
             endereco: estado.endereco,
+            localCep: estado.localCep,
             configurado: estado.configurado
         }));
     } catch (erro) {
@@ -97,7 +103,7 @@ export function salvarPreferencias() {
 export function ligarSalvamentoAutomatico() {
     watch(
         () => [estado.regiao, estado.lidos, estado.config, estado.relatos,
-               estado.contadorProtocolo, estado.endereco, estado.configurado],
+               estado.contadorProtocolo, estado.endereco, estado.localCep, estado.configurado],
         salvarPreferencias,
         { deep: true }
     );
@@ -139,6 +145,8 @@ export function irPara(tela) {
 }
 
 export function trocarRegiao(id) {
+    if (!REGIOES[id]) return;
+    estado.localCep = null;
     estado.regiao = id;
     zerarAlertas();
 

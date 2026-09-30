@@ -7,7 +7,15 @@
             </div>
         </header>
 
-        <div class="faixa faixa--principal">
+        <div v-if="estado.localCep" class="faixa faixa--principal">
+            <div class="cartao">
+                <p class="linha__titulo">{{ estado.localCep.bairro }} · CEP {{ estado.localCep.cep }}</p>
+                <p class="linha__texto">Ainda não há dias e horários de coleta cadastrados para este CEP. Os caminhões no mapa são apenas uma simulação.</p>
+                <button class="botao-claro" @click="irPara('config')">Alterar localização</button>
+            </div>
+        </div>
+
+        <div v-else class="faixa faixa--principal">
             <div class="chips">
                 <button class="chip" v-for="(regiao, id) in REGIOES" :key="id"
                         :class="{ 'chip--ativo': id === estado.regiao }"
@@ -50,7 +58,7 @@
             </div>
         </div>
 
-        <div class="faixa faixa--lado">
+        <div v-if="!estado.localCep" class="faixa faixa--lado">
             <div>
                 <div class="detalhe">
                     <div class="detalhe__topo">
@@ -102,7 +110,7 @@
 import { computed } from 'vue';
 import { REGIOES } from '../dados/regioes.js';
 import { MESES, MESES_MIN, DIAS_SEMANA, DIAS_CURTOS } from '../dados/listas.js';
-import { estado, regiaoAtual, trocarRegiao } from '../estado/estado.js';
+import { estado, regiaoAtual, trocarRegiao, irPara } from '../estado/estado.js';
 import { historicoDoDia, relatoDoDia } from '../estado/frota.js';
 import { chaveData, tipoDeColeta, janelaDe, doisDigitos } from '../nucleo/datas.js';
 

@@ -97,6 +97,14 @@ que é reativo, e daí a tela se atualiza sozinha.
 
 Tudo o que o morador escolhe fica guardado no aparelho.
 
+Se o bairro não estiver entre os nove da demonstração, escolha **Meu bairro não
+está na lista** e informe um CEP. O app consulta a BrasilAPI CEP V2 para obter
+uma posição aproximada e abre o mapa de ruas nesse ponto. Três marcadores de
+caminhões aparecem nas proximidades apenas como **simulação visual**: eles não
+representam veículos ou rotas reais. Para esse CEP, o calendário e os alertas de
+proximidade não têm dados cadastrados. Alguns CEPs não possuem coordenadas na
+BrasilAPI; nesse caso, o app informa que não pode posicioná-los no mapa.
+
 ## Modo de rastreamento real
 
 O modo real usa o mapa Leaflet e consulta a API. Veja [api/README.md](api/README.md)
@@ -107,7 +115,9 @@ O sistema de rastreamento da frota ainda não foi identificado, portanto não h�
 posições reais disponíveis. Sem `VITE_API_URL`, o app continua em modo de
 demonstração e identifica os caminhões como simulados. No modo real, a posição
 é exibida apenas quando a última amostra tem até cinco minutos. O calendário
-permanece ilustrativo; os relatos ainda são locais e não chegam à prefeitura.
+permanece ilustrativo. Com a API configurada, os relatos são gravados no
+PostgreSQL e guardados também no aparelho; sem ela, ficam somente no aparelho.
+Não há envio à prefeitura.
 
 O marcador do mapa ilustrado representa um ponto do bairro, não o GPS do
 morador. Para ver sua posição, use **Ver minha localização no mapa real** e
@@ -131,4 +141,5 @@ Sem configurar a API, as posições dos caminhões são uma simulação: cada um
 percorre sua rota a uma velocidade fixa. Com a API configurada, o mapa mostra
 somente posições recebidas e recentes; ainda falta conectá-la ao fornecedor do
 rastreamento. O histórico do calendário é gerado a partir da data, sempre igual
-para o mesmo dia. Os relatos ficam só neste aparelho.
+para o mesmo dia. Os relatos ficam só neste aparelho quando a API não está
+configurada.

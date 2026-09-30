@@ -8,10 +8,15 @@
         </header>
 
         <div class="faixa faixa--principal">
+            <div v-if="estado.localCep" class="cartao">
+                <p class="linha__titulo">Seu CEP: {{ estado.localCep.cep }}</p>
+                <p class="linha__texto">{{ estado.localCep.bairro }} · {{ estado.localCep.cidade }}/{{ estado.localCep.estado }}</p>
+                <p class="linha__texto">Localização aproximada; caminhões do mapa são simulados.</p>
+            </div>
             <p class="secao__rotulo">SUA REGIÃO</p>
             <div class="chips chips--coluna">
                 <button class="chip" v-for="(regiao, id) in REGIOES" :key="id"
-                        :class="{ 'chip--ativo': id === estado.regiao }" @click="trocarRegiao(id)">
+                        :class="{ 'chip--ativo': !estado.localCep && id === estado.regiao }" @click="trocarRegiao(id)">
                     {{ regiao.nome }}
                     <span class="chip__detalhe">{{ regiao.endereco }}</span>
                 </button>

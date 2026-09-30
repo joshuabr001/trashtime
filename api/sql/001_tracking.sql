@@ -20,6 +20,17 @@ ALTER TABLE vehicle_positions ADD COLUMN IF NOT EXISTS source text NOT NULL DEFA
 CREATE INDEX IF NOT EXISTS vehicle_positions_latest_idx
     ON vehicle_positions (vehicle_id, recorded_at DESC, id DESC);
 
+CREATE TABLE IF NOT EXISTS reports (
+    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    request_id uuid NOT NULL UNIQUE,
+    protocol text NOT NULL UNIQUE,
+    type text NOT NULL CHECK (type IN ('nao-realizada', 'acumulo', 'fora-horario', 'outro')),
+    region text NOT NULL,
+    location text NOT NULL,
+    description text NOT NULL DEFAULT '',
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+
 INSERT INTO vehicles (id, name, region) VALUES
     ('ct052', 'Caminhão CT-052', 'Umarizal'),
     ('ct063', 'Caminhão CT-063', 'Reduto'),

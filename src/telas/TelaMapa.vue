@@ -3,7 +3,7 @@
         <header class="cabecalho">
             <div class="cabecalho__texto">
                 <h1 class="cabecalho__titulo">Coleta de Lixo</h1>
-                <p class="cabecalho__subtitulo">{{ rastreamentoReal ? (simulados > 0 ? 'Demonstração com posições simuladas' : 'Posições recebidas pela API') : mapaGeografico ? 'Mapa de ruas · localização opcional' : 'Demonstração com dados simulados' }}</p>
+                <p class="cabecalho__subtitulo">{{ estado.localCep ? `${estado.localCep.bairro} · CEP ${estado.localCep.cep} · caminhões simulados` : rastreamentoReal ? (simulados > 0 ? 'Demonstração com posições simuladas' : 'Posições recebidas pela API') : mapaGeografico ? 'Mapa de ruas · localização opcional' : 'Demonstração com dados simulados' }}</p>
             </div>
             <button class="cabecalho__sino" aria-label="Ver avisos" @click="irPara('avisos')">
                 <svg class="icone" width="24" height="24"><use href="#ic-sino" /></svg>
@@ -18,9 +18,9 @@
                         <svg class="icone" width="21" height="21"><use href="#ic-caminhao" /></svg>
                     </div>
                     <div>
-                        <p class="rotulo">{{ rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
-                        <p class="numerao">{{ rastreamentoReal ? contagemReal : mapaGeografico ? 'GPS' : emRota + ' de ' + frota.length }}</p>
-                        <p class="rotulo">{{ rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'Caminhões próximos' : rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
+                        <p class="numerao">{{ estado.localCep ? 3 : rastreamentoReal ? contagemReal : mapaGeografico ? 'GPS' : emRota + ' de ' + frota.length }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'posições ilustrativas' : rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
                     </div>
                 </div>
                 <div class="cartao-status">
@@ -29,22 +29,22 @@
                     </div>
                     <div>
                         <p class="rotulo">{{ rastreamentoReal ? 'Próxima coleta · previsão ilustrativa' : 'Próxima coleta' }}</p>
-                        <p class="destaque">{{ proxima.dia }}</p>
-                        <p class="rotulo">{{ proxima.hora }}</p>
+                        <p class="destaque">{{ estado.localCep ? 'Sem dados' : proxima.dia }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'Calendário indisponível para este CEP' : proxima.hora }}</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="faixa faixa--principal">
-            <button v-if="!rastreamentoReal" class="botao-claro" @click="mapaGeografico = !mapaGeografico">
+            <button v-if="!rastreamentoReal && !estado.localCep" class="botao-claro" @click="mapaGeografico = !mapaGeografico">
                 {{ mapaGeografico ? 'Ver mapa ilustrado' : 'Ver minha localização no mapa real' }}
             </button>
-            <MapaReal v-if="rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal" @atualizar="receberAtualizacao" />
+            <MapaReal v-if="estado.localCep || rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal && !estado.localCep" @atualizar="receberAtualizacao" />
             <MapaBelem v-else />
 
             <div>
-                <div class="cartao-caminhao" v-if="!rastreamentoReal && !mapaGeografico && caminhaoAtual">
+                <div class="cartao-caminhao" v-if="!estado.localCep && !rastreamentoReal && !mapaGeografico && caminhaoAtual">
                     <span class="cartao-caminhao__ponto" :style="{ background: caminhaoAtual.cor }"></span>
                     <button class="cartao-caminhao__info" @click="$emit('abrir-itinerario')">
                         <p class="cartao-caminhao__nome">{{ caminhaoAtual.nome }}</p>
@@ -64,7 +64,7 @@
             </div>
         </div>
 
-        <div class="faixa faixa--lado">
+        <div class="faixa faixa--lado" v-if="!estado.localCep">
             <div class="secao">
                 <div class="secao__cabecalho">
                     <h2 class="secao__titulo">Próximas coletas</h2>
