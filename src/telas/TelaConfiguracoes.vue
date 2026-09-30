@@ -12,7 +12,7 @@
                 <p class="linha__titulo">Seu CEP: {{ estado.localCep.cep }}</p>
                 <p class="linha__texto">{{ estado.localCep.bairro }} · {{ estado.localCep.cidade }}/{{ estado.localCep.estado }}</p>
                 <p class="linha__texto">{{ estado.localCep.rua || 'Rua não informada' }}, {{ estado.localCep.numero || 'número não informado' }}</p>
-                <p class="linha__texto">O ponto no mapa é aproximado pelo CEP; os caminhões são simulados.</p>
+                <p class="linha__texto">{{ estado.localCep.pontoAjustado ? 'Ponto da casa ajustado no mapa.' : 'Ponto aproximado pelo CEP; ajuste no mapa se necessário.' }} Os caminhões são simulados.</p>
             </div>
             <div class="cartao" style="margin-top: 10px">
                 <div class="linha">

@@ -106,6 +106,10 @@ sem alterar o endereço da coleta. Para esse CEP, o calendário e os alertas de
 proximidade não têm dados cadastrados. Não há notificações de chegada com o app
 fechado. Alguns CEPs não possuem coordenadas na
 BrasilAPI; nesse caso, o app informa que não pode posicioná-los no mapa.
+Se a posição do CEP estiver errada, use **Ajustar ponto da casa no mapa** e toque
+no lugar correto. O ajuste fica salvo no navegador. Se estiver em casa, você pode
+primeiro usar **Mostrar onde estou agora** para centralizar o mapa e depois ajustar
+o ponto da casa; o GPS sozinho não altera o endereço cadastrado.
 
 ## Modo de rastreamento real
 

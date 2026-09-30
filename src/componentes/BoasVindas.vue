@@ -24,7 +24,7 @@
             <label class="campo__rotulo" for="boas-vindas-numero">Número da casa</label>
             <input class="campo" id="boas-vindas-numero" type="text"
                    maxlength="20" placeholder="Ex.: 123 ou s/n" v-model="numero">
-            <p class="campo__rotulo">Confira a rua e o número. O ponto no mapa é aproximado pelo CEP; os caminhões são simulados.</p>
+            <p class="campo__rotulo">Confira a rua e o número. Depois, se o ponto da casa aparecer errado, ajuste-o tocando no mapa. Os caminhões são simulados.</p>
         </template>
 
         <p v-if="erro" class="campo__rotulo" role="alert">{{ erro }}</p>

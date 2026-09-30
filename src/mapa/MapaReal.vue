@@ -2,8 +2,12 @@
     <div class="mapa-real">
         <div ref="elemento" class="mapa-real__canvas" role="application" aria-label="Mapa de ruas com endereço da coleta e caminhões simulados"></div>
         <div class="mapa-real__acoes">
+            <button v-if="estado.localCep" class="botao-claro" @click="alternarAjuste">
+                {{ ajustandoCasa ? 'Cancelar ajuste' : 'Ajustar ponto da casa no mapa' }}
+            </button>
             <button class="botao-claro" :disabled="!contextoSeguro" @click="localizar">Mostrar onde estou agora</button>
             <button v-if="estado.localCep && mostrandoGps" class="botao-claro" @click="voltarParaCasa">Voltar ao endereço da coleta</button>
+            <p v-if="estado.localCep" class="mapa-real__estado" role="status">{{ ajustandoCasa ? 'Mova o mapa até sua casa e toque no local correto para salvar o ponto.' : estado.localCep.pontoAjustado ? 'Ponto da casa ajustado por você e salvo neste aparelho.' : 'Ponto inicial aproximado pelo CEP. Confira e ajuste se estiver errado.' }}</p>
             <p class="mapa-real__estado" role="status">{{ localizacaoMensagem }}</p>
         </div>
         <p class="mapa-real__estado" v-if="mostrarVeiculos" role="status">{{ mensagem }}</p>
@@ -33,6 +37,7 @@ let marcadorUsuario;
 let precisaoUsuario;
 let marcadorCep;
 const mostrandoGps = ref(false);
+const ajustandoCasa = ref(false);
 const caminhoesDemo = [];
 
 function posicionarCaminhoesDemo(ponto) {
@@ -62,7 +67,7 @@ function mostrarCep() {
     }
     const { latitude, longitude, bairro } = estado.localCep;
     const ponto = [latitude, longitude];
-    mapa.setView(ponto, 14);
+    mapa.setView(ponto, estado.localCep.pontoAjustado ? 17 : 14);
     marcadorCep = L.circleMarker(ponto, {
         radius: 9, color: '#155EEF', weight: 3, fillColor: '#4C8DFF', fillOpacity: 1
     }).addTo(mapa).bindTooltip(`Endereço da coleta · ${bairro}`, { permanent: true, direction: 'bottom' });
@@ -110,6 +115,23 @@ function voltarParaCasa() {
     if (!mapa || !estado.localCep) return;
     mapa.setView([estado.localCep.latitude, estado.localCep.longitude], 16);
     mostrandoGps.value = false;
+}
+
+function alternarAjuste() {
+    ajustandoCasa.value = !ajustandoCasa.value;
+    if (mapa) mapa.getContainer().style.cursor = ajustandoCasa.value ? 'crosshair' : '';
+}
+
+function salvarPontoDaCasa(evento) {
+    if (!ajustandoCasa.value || !estado.localCep) return;
+    ajustandoCasa.value = false;
+    mapa.getContainer().style.cursor = '';
+    estado.localCep = {
+        ...estado.localCep,
+        latitude: evento.latlng.lat,
+        longitude: evento.latlng.lng,
+        pontoAjustado: true
+    };
 }
 
 async function atualizar() {
@@ -164,6 +186,7 @@ async function atualizar() {
 
 onMounted(() => {
     mapa = L.map(elemento.value).setView([-1.4558, -48.4902], 13);
+    mapa.on('click', salvarPontoDaCasa);
     L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
