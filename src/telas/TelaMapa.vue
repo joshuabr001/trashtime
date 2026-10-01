@@ -43,7 +43,7 @@
             <MapaReal v-if="estado.localCep || rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal && !estado.localCep" :instante="agora" @atualizar="receberAtualizacao" />
             <MapaBelem v-else />
 
-            <h2 v-if="estado.localCep" class="secao__titulo mapa-proximo__titulo">Próximo caminhão</h2>
+            <h2 v-if="estado.localCep" class="secao__titulo mapa-proximo__titulo">Acompanhamento dos caminhões</h2>
             <div v-if="estado.localCep" class="cartao-caminhao cartao-caminhao--cep">
                 <span class="cartao-caminhao__ponto"></span>
                 <div class="cartao-caminhao__info">
