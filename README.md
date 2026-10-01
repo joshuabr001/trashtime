@@ -1,154 +1,121 @@
 # TrashTime
 
-Aplicativo de acompanhamento da coleta de lixo urbana, ambientado no **centro de
-Belém do Pará**. Mostra em tempo real onde estão os caminhões, por onde já
-passaram e o que ainda falta, informa os dias e horários de coleta de cada
-bairro, avisa quando o caminhão se aproxima e permite ao morador registrar um
-problema quando o serviço falha.
+Protótipo acadêmico para acompanhar a coleta de lixo em Belém (PA). O morador
+cadastra o endereço da coleta pelo CEP e número da casa, vê a região em um mapa
+de ruas, consulta um calendário e pode registrar um problema.
 
-São nove bairros: **Umarizal**, **Reduto**, **Campina**, **Cidade Velha**,
-**Nazaré**, **São Brás**, **Batista Campos**, **Jurunas** e **Guamá**. O mapa
-reproduz a península de Belém — a Baía do Guajará a oeste, o Rio Guamá ao sul e
-a Ilha do Combu do outro lado — e traz onze pontos que qualquer belenense
-reconhece: Ver-o-Peso, Estação das Docas, Teatro da Paz, Forte do Presépio,
-Mangal das Garças, Basílica de Nazaré, Praça Batista Campos, Mercado de São
-Brás, Bosque Rodrigues Alves e a UFPA. As ruas dos itinerários são reais.
+## Situação atual
 
-## Tecnologia
+O [site publicado](https://trashtime-one.vercel.app/) roda o **frontend Vue 3/Vite**
+na Vercel. O código do **backend NestJS/PostgreSQL** está em [`api/`](api/), mas
+essa API não é publicada pela configuração atual da Vercel. Os caminhões vistos
+ao redor do endereço cadastrado são gerados no navegador para demonstração;
+**não são posições recebidas de rastreadores**. Não há confirmação de que um
+caminhão passou pela rua, previsão real de chegada nem notificações com o app
+fechado.
 
-**Vue 3** com **Vite**. Estilo próprio, sem framework de CSS. O frontend agora
-também tem um modo de mapa real com **Leaflet**. A API opcional em `api/` usa
-**NestJS sobre Express** e **PostgreSQL**.
+O projeto separa três origens de informação:
 
-O mapa da demonstração não usa biblioteca de mapas: é SVG desenhado por cálculo. A malha de ruas
-sai de uma única fórmula — `P(i,j) = origem + i×62×u + j×46×v`, com as vias a
-−4° — e as rotas dos caminhões correm sobre os cruzamentos dela. O caminhão é um
-volume de 24 faces, montado por uma projeção que leva cada ponto do espaço às
-duas coordenadas do desenho.
+| Origem | Uso atual |
+| --- | --- |
+| ViaCEP | Consulta rua, bairro e cidade a partir do CEP, diretamente no navegador. |
+| Photon/OpenStreetMap | Busca as coordenadas do endereço. O mapa Leaflet usa imagens de ruas do OpenStreetMap. |
+| API própria (`api/`) | Recebe posições de veículos, consulta as mais recentes e grava relatos quando está hospedada e configurada. |
 
-## Como rodar
+O mapa pode funcionar sem a API própria porque o frontend consulta ViaCEP,
+Photon e os mapas públicos diretamente. A busca pelo endereço envia rua, número
+e cidade ao Photon. Um resultado apenas para a rua ou instituição pode marcar um
+ponto aproximado, não necessariamente a porta da casa.
+
+## Telas
+
+- **Mapa:** mostra o endereço de coleta, a localização atual do celular quando
+  autorizada e três caminhões ilustrativos perto do endereço. A seção de
+  acompanhamento exibe horários da demonstração. O mapa usa Leaflet e imagens
+  do OpenStreetMap.
+- **Calendário:** apresenta um mês navegável. Para os nove bairros cadastrados,
+  exibe dias e horários **ilustrativos**, sem confirmação do serviço de coleta.
+  Para outros bairros, informa que não há agenda cadastrada.
+- **Avisos:** apresenta informações do endereço, a agenda ilustrativa quando
+  disponível e relatos feitos no app. Não recebe alertas reais da prefeitura ou
+  de rastreadores na configuração publicada.
+- **Configurações:** permite consultar ou alterar o endereço salvo no aparelho.
+
+Os nove bairros com calendário ilustrativo são Umarizal, Reduto, Campina,
+Cidade Velha, Nazaré, São Brás, Batista Campos, Jurunas e Guamá. Um CEP de outro
+bairro pode ser exibido no mapa, mas não recebe horários inventados de um desses
+nove bairros.
+
+## Tecnologias e estrutura
+
+- Frontend: Vue 3, Vite, Leaflet, CSS próprio e armazenamento local do navegador.
+- Backend: NestJS sobre Express, PostgreSQL e Dockerfile em [`api/`](api/).
+- Serviços externos: ViaCEP, Photon e imagens de mapa do OpenStreetMap.
+
+```text
+src/telas/       telas Mapa, Calendário, Avisos e Configurações
+src/mapa/        mapa Leaflet e mapa SVG da demonstração original
+src/nucleo/      datas, geocodificação e movimentos ilustrativos
+src/estado/      estado reativo e persistência no navegador
+api/src/         rotas HTTP e acesso ao banco
+api/sql/         estrutura de veículos, posições e relatos
+```
+
+## Executar o frontend
+
+Na raiz do projeto:
 
 ```bash
-npm install     # uma vez
-npm run dev     # abre em http://localhost:5173
+npm install
+npm run dev
 ```
 
-Para gerar a versão publicável:
+Abra `http://localhost:5173`. Para gerar a versão publicável, execute
+`npm run build`; os arquivos saem em `dist/`. O GPS do navegador no celular
+exige HTTPS. O endereço da coleta salvo continua sendo a referência mesmo se
+o celular estiver em outro local.
 
-```bash
-npm run build   # sai em dist/
-npm run preview # confere o resultado do build
-```
+## Executar o backend localmente
 
-## Como está organizado
+O guia completo está em [api/README.md](api/README.md). Em resumo:
 
-```
-index.html            entrada: o Vite injeta o app aqui
-public/               copiado sem alteração para dist/
-  manifest.json         para o app ser instalável
-  sw.js                 service worker: abre sem internet
-  icone-*.png
-src/
-  main.js             monta o app e liga tema e persistência
-  App.vue             troca de tela, folhas e o relógio da simulação
-  dados/              bairros, frota, pontos e listas fixas
-  nucleo/             funções puras: geometria, datas e o desenho 3D
-  estado/             estado reativo, tema e as contas que dependem dele
-  mapa/               o SVG do mapa, o zoom e os gestos de toque
-  telas/              as quatro telas
-  componentes/        abas, folhas, boas-vindas, alerta
-  estilo/base.css     toda a aparência, incluindo o modo escuro
-```
+1. Inicie um PostgreSQL, por exemplo com `docker compose up -d postgres` na raiz.
+2. Copie `api/.env.example` para `api/.env` e configure `DATABASE_URL` e uma
+   `INGEST_API_KEY` aleatória com pelo menos 24 caracteres.
+3. Na pasta `api/`, execute `npm install`, `npm run migrate` e `npm run dev`.
+4. Abra `http://localhost:3000/api/vehicles` para conferir a resposta da API.
 
-A divisão segue uma regra: **`nucleo/` não sabe que existe tela nem estado**. São
-funções que recebem números e devolvem números — dá para testá-las no Node, sem
-navegador. `estado/` conhece o estado do app. `mapa/`, `telas/` e `componentes/`
-conhecem a tela.
+Para o frontend local consultar essa API, defina
+`VITE_API_URL=http://localhost:3000` em `.env.local` na raiz e reinicie o Vite.
+O script `npm run simulate` dentro de `api/` pode enviar posições fictícias à
+API para testar o fluxo completo de gravação e consulta.
 
-## O que o Vue trouxe
+**Limite de integração:** mesmo com `VITE_API_URL`, a tela que usa um CEP ainda
+desenha os três caminhões no navegador. A consulta de posições da API é usada
+no modo de mapa sem endereço por CEP. Conectar a tela do CEP às posições da API
+é um trabalho pendente para demonstrar rastreamento ponta a ponta.
 
-Na versão anterior, feita sem framework, havia vinte funções `desenharX()` que
-montavam HTML em texto. Depois de mexer no estado era preciso lembrar de chamar
-as certas — e esquecer uma deixava a tela desatualizada.
+## API interna
 
-Agora o estado é reativo: mudar o bairro atualiza sozinho o cartão, a lista de
-coletas, o calendário e o caminhão em destaque. As funções de desenho sumiram.
+| Rota | Função |
+| --- | --- |
+| `GET /api/vehicles` | Lista a última posição recebida de cada veículo; posições com mais de cinco minutos ficam offline. |
+| `POST /api/vehicles/positions` | Recebe latitude e longitude de um rastreador ou script de teste. Exige `INGEST_API_KEY`. |
+| `POST /api/reports` | Grava um relato no PostgreSQL e devolve um protocolo. |
 
-Isso também eliminou um defeito real: a camada da frota era refeita a cada
-segundo com `innerHTML`, o que destruía o elemento em foco — quem navegava pelo
-teclado perdia o foco a cada segundo. O Vue mexe só no atributo que mudou, então
-o foco permanece.
+O backend não está ligado à frota municipal nem encaminha relatos à prefeitura.
+Sem `VITE_API_URL`, os relatos ficam somente no aparelho. Com a API configurada,
+o formulário tenta gravá-los no PostgreSQL e mantém uma cópia local.
 
-**O que continuou imperativo:** os gestos de toque. Pinça e arrasto são conta de
-pixel, e framework nenhum ajuda nisso. O resultado da conta cai em `estado.mapa`,
-que é reativo, e daí a tela se atualiza sozinha.
+## Publicação
 
-## O que dá para fazer no app
+A Vercel compila o projeto Vite e publica `dist/`. O arquivo `.vercelignore`
+exclui `api/` desse deploy. Para publicar o backend, é necessário um serviço
+Node/Docker e um PostgreSQL acessível por ele. Configure no serviço da API
+`DATABASE_URL`, `INGEST_API_KEY` e `FRONTEND_ORIGIN`; execute
+`node scripts/migrate.mjs` antes de iniciar a aplicação. Depois configure a URL
+HTTPS da API como `VITE_API_URL` na Vercel e faça um novo deploy do frontend.
+Não coloque a chave de ingestão no frontend ou no Git.
 
-- **Mapa** — nove caminhões percorrendo circuitos fechados, cada rota dividida em
-  já passou, rota prevista e ainda não passou. Pinça, arrasto, dois toques para
-  aproximar, e no celular o mapa cresce quando puxado para baixo.
-- **Calendário** — dias de coleta comum e seletiva por bairro, com o histórico do
-  que já aconteceu.
-- **Avisos** — proximidade do caminhão, mudança de horário e comunicados, com
-  filtro e marcação de lido.
-- **Configurações** — bairro, endereço, modo escuro, quais alertas receber, a que
-  distância avisar e o horário do lembrete.
-
-Tudo o que o morador escolhe fica guardado no aparelho.
-
-Na primeira abertura, informe o CEP, confira a rua e digite o número da residência.
-O app consulta o ViaCEP para preencher o endereço e usa Photon para
-buscar a posição da rua e do número no OpenStreetMap. Um ícone de casa aparece
-no resultado encontrado. Se o serviço não confirmar a rua na cidade informada,
-o app pede para conferir os dados em vez de marcar outra região como residência.
-Essa busca envia rua, número e cidade ao serviço público Photon ao salvar o endereço.
-Quando o número não está cadastrado no mapa, o ponto representa apenas a rua
-e é identificado como aproximado. Para CEPs de grandes usuários, o app também
-pode encontrar o local pelo nome da instituição devolvido pelo ViaCEP.
-Três marcadores de caminhões aparecem perto do endereço da
-coleta apenas como **simulação visual**: eles não
-representam veículos ou rotas reais. O GPS opcional mostra onde está o celular,
-sem alterar o endereço da coleta. Para esse CEP, o calendário e os alertas de
-proximidade não têm dados cadastrados. Não há notificações de chegada com o app
- fechado. O Photon público é adequado para demonstração de baixo volume e pode
-não encontrar todos os endereços. O GPS sozinho não altera o endereço cadastrado.
-
-## Modo de rastreamento real
-
-O modo real usa o mapa Leaflet e consulta a API. Veja [api/README.md](api/README.md)
-para criar o banco, iniciar o servidor e configurar `VITE_API_URL` no frontend.
-Para demonstrar sem rastreador, use `npm run simulate` na pasta `api/`; as
-posições fictícias são identificadas como simulação na tela.
-O sistema de rastreamento da frota ainda não foi identificado, portanto não há
-posições reais disponíveis. Sem `VITE_API_URL`, o app continua em modo de
-demonstração e identifica os caminhões como simulados. No modo real, a posição
-é exibida apenas quando a última amostra tem até cinco minutos. O calendário
-permanece ilustrativo. Com a API configurada, os relatos são gravados no
-PostgreSQL e guardados também no aparelho; sem ela, ficam somente no aparelho.
-Não há envio à prefeitura.
-
-O marcador do mapa ilustrado representa um ponto do bairro, não o GPS do
-morador. Para ver sua posição, use **Ver minha localização no mapa real** e
-autorize o navegador. A posição do aparelho fica somente no navegador. Esse
-recurso exige HTTPS; o endereço HTTP da rede local usado no desenvolvimento
-não libera o GPS no celular.
-
-## Publicar na Vercel
-
-O projeto é detectado como Vite automaticamente: a Vercel roda `npm install` e
-`npm run build`, e publica `dist/`. Basta ligar o repositório do GitHub — a cada
-Push, o site é republicado.
-
-O `vercel.json` cuida de duas coisas: o `sw.js` nunca é guardado em cache (senão
-o service worker antigo continuaria valendo) e os arquivos de `recursos/`, que
-têm um código no nome, são guardados por um ano.
-
-## Dados
-
-Sem configurar a API, as posições dos caminhões são uma simulação: cada um
-percorre sua rota a uma velocidade fixa. Com a API configurada, o mapa mostra
-somente posições recebidas e recentes; ainda falta conectá-la ao fornecedor do
-rastreamento. O histórico do calendário é gerado a partir da data, sempre igual
-para o mesmo dia. Os relatos ficam só neste aparelho quando a API não está
-configurada.
+Consulte [api/README.md](api/README.md) para detalhes do contrato HTTP e do
+ambiente de desenvolvimento.
