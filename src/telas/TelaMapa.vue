@@ -20,7 +20,7 @@
                     <div>
                         <p class="rotulo">{{ estado.localCep ? 'Caminhões no mapa' : rastreamentoReal ? 'Caminhões no mapa' : mapaGeografico ? 'Localização do morador' : 'Caminhões em rota' }}</p>
                         <p class="numerao">{{ estado.localCep ? 3 : rastreamentoReal ? contagemReal : mapaGeografico ? 'GPS' : emRota + ' de ' + frota.length }}</p>
-                        <p class="rotulo">{{ estado.localCep ? 'simulados na região' : rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
+                        <p class="rotulo">{{ estado.localCep ? 'posições de exemplo' : rastreamentoReal ? (simulados > 0 ? 'posições simuladas/recentes' : 'com posição recente') : mapaGeografico ? 'com sua permissão' : 'em rota na simulação' }}</p>
                     </div>
                 </div>
                 <div class="cartao-status">
@@ -43,17 +43,18 @@
             <MapaReal v-if="estado.localCep || rastreamentoReal || mapaGeografico" :mostrar-veiculos="rastreamentoReal && !estado.localCep" :instante="agora" @atualizar="receberAtualizacao" />
             <MapaBelem v-else />
 
+            <h2 v-if="estado.localCep" class="secao__titulo mapa-proximo__titulo">Próximo caminhão</h2>
             <div v-if="estado.localCep" class="cartao-caminhao cartao-caminhao--cep">
                 <span class="cartao-caminhao__ponto"></span>
                 <div class="cartao-caminhao__info">
-                    <p class="cartao-caminhao__nome">{{ proximoSimulado.nome }} · simulação</p>
-                    <p class="cartao-caminhao__setor">Próxima passagem ilustrativa na região às {{ hora(proximoSimulado.proximaPassagemMs) }}</p>
+                    <p class="cartao-caminhao__nome">{{ proximoSimulado.nome }}</p>
+                    <p class="cartao-caminhao__setor">Passagem estimada na região às {{ hora(proximoSimulado.proximaPassagemMs) }}</p>
                     <p class="cartao-caminhao__eta">Em cerca de {{ proximoSimulado.minutosAtePassagem }} min</p>
                 </div>
                 <button class="botao-seguir" :aria-expanded="detalhesCaminhoes" @click="detalhesCaminhoes = !detalhesCaminhoes">{{ detalhesCaminhoes ? 'Ocultar' : 'Ver 3' }}</button>
             </div>
             <div v-if="estado.localCep && detalhesCaminhoes" class="cartao cartao-mapa">
-                <h2 class="cartao-mapa__titulo">Passagens da demonstração</h2>
+                <h2 class="cartao-mapa__titulo">Horários dos caminhões</h2>
                 <div class="cartao-mapa__veiculo" v-for="caminhao in caminhoesCep" :key="caminhao.id">
                     <div class="cartao-mapa__veiculo-info">
                         <p class="linha__titulo">{{ caminhao.nome }}</p>
@@ -61,7 +62,7 @@
                     </div>
                     <span class="marca marca--comum cartao-mapa__tempo">{{ caminhao.minutosAtePassagem }} min</span>
                 </div>
-                <p class="cartao-mapa__nota">Horários e veículos simulados. Eles não confirmam a passagem da coleta real pela sua rua.</p>
+                <p class="cartao-mapa__nota">Dados de demonstração. Os horários não confirmam que a coleta passou pela sua rua nem quando chegará.</p>
             </div>
 
             <div v-if="!estado.localCep">

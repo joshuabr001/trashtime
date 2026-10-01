@@ -2261,7 +2261,8 @@ button {
 
 .cartoes-status--cep .cartao-status > div:last-child { min-width: 0; }
 
-#tela-mapa .cartao-caminhao--cep { margin-top: 14px; min-width: 0; }
+.mapa-proximo__titulo { margin: 16px 14px 0; }
+#tela-mapa .cartao-caminhao--cep { margin-top: 8px; min-width: 0; }
 .cartao-caminhao--cep .cartao-caminhao__ponto { background: var(--verde-forte); }
 .cartao-caminhao--cep .cartao-caminhao__info { min-width: 0; cursor: default; }
 .cartao-caminhao--cep .cartao-caminhao__setor { line-height: 1.35; }
@@ -2279,6 +2280,7 @@ button {
 
 @media (min-width: 900px) {
     .mapa-real__canvas { height: 380px; }
+    .mapa-proximo__titulo { margin: 0; }
     #tela-mapa .mapa-real + .cartao-mapa,
     #tela-mapa .cartao-mapa + .cartao-mapa { margin-top: 0; }
     #tela-mapa .cartao-caminhao--cep,
