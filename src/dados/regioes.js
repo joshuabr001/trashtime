@@ -56,3 +56,10 @@ export const REGIOES = {
         janela: '07:30 – 10:30', janelaSeletiva: '15:30 – 18:30', caminhao: 'CT-099'
     }
 };
+
+export function regiaoPorBairro(bairro) {
+    if (!bairro) return null;
+    const normalizar = (valor) => String(valor).normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+    return Object.keys(REGIOES).find((id) => normalizar(REGIOES[id].nome) === normalizar(bairro)) || null;
+}

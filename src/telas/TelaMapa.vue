@@ -157,7 +157,7 @@ import { estado, frota, caminhaoAtual, regiaoAtual, naoLidos, irPara } from '../
 import { textoChegada, textoSituacao } from '../estado/frota.js';
 import { proximasColetas, janelaDe, doisDigitos, chaveData } from '../nucleo/datas.js';
 import { DIAS_SEMANA, DIAS_CURTOS } from '../dados/listas.js';
-import { REGIOES } from '../dados/regioes.js';
+import { REGIOES, regiaoPorBairro } from '../dados/regioes.js';
 import { caminhoesSimulados } from '../nucleo/simulacaoCep.js';
 
 defineEmits(['abrir-relato', 'abrir-itinerario']);
@@ -191,12 +191,7 @@ const caminhoesCep = computed(() => caminhoesSimulados(estado.localCep, agora.va
     .sort((a, b) => a.minutosAtePassagem - b.minutosAtePassagem));
 const proximoSimulado = computed(() => caminhoesCep.value[0] || { nome: 'Nenhum', minutosAtePassagem: '—' });
 const hora = (instanteMs) => new Date(instanteMs).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-const regiaoCep = computed(() => {
-    if (!estado.localCep) return null;
-    const nome = (valor) => String(valor).normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase().trim();
-    return Object.keys(REGIOES).find((id) => nome(REGIOES[id].nome) === nome(estado.localCep.bairro)) || null;
-});
+const regiaoCep = computed(() => regiaoPorBairro(estado.localCep?.bairro));
 
 function receberAtualizacao(resumo) {
     contagemReal.value = resumo.online;

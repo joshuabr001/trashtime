@@ -133,7 +133,7 @@ export const avisos = computed(() => {
             '. Este protótipo não acompanha respostas da prefeitura.',
         quando: rotuloQuando(relato.criadoEm)
     }));
-    return avisosDinamicos.value.concat(deRelatos).concat(estado.localCep ? [] : AVISOS_BASE);
+    return (estado.localCep ? [] : avisosDinamicos.value).concat(deRelatos).concat(estado.localCep ? [] : AVISOS_BASE);
 });
 
 export const naoLidos = computed(

@@ -2284,3 +2284,21 @@ button {
     #tela-mapa .cartao-caminhao--cep,
     #tela-mapa .cartao-caminhao--cep + .cartao-mapa { margin-top: 0; }
 }
+
+.calendario-endereco {
+    padding: 14px;
+    margin-top: 14px;
+}
+
+.calendario-endereco .botao-claro { margin-top: 12px; }
+.calendario-nota { margin: 12px 0 0; color: var(--texto-suave); font-size: 11.5px; line-height: 1.4; }
+
+.avisos-painel { display: grid; gap: 10px; padding: 14px 14px 0; }
+.avisos-painel__cartao { margin: 0; padding: 14px; }
+.avisos-painel__cartao .link { margin-top: 10px; }
+.avisos-painel__destaque { margin: 8px 0 0; font-size: 17px; font-weight: 800; line-height: 1.3; }
+
+@media (min-width: 900px) {
+    .calendario-endereco { margin-top: 0; }
+    .avisos-painel { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 0; }
+}

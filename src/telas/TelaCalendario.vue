@@ -3,25 +3,22 @@
         <header class="cabecalho cabecalho--simples">
             <div class="cabecalho__texto">
                 <h1 class="cabecalho__titulo">Calendário</h1>
-                <p class="cabecalho__subtitulo">Dias e horários de coleta por região</p>
+                <p class="cabecalho__subtitulo">{{ estado.localCep ? `${estado.localCep.bairro} · CEP ${estado.localCep.cep}` : 'Dias e horários de coleta por região' }}</p>
             </div>
         </header>
 
-        <div v-if="estado.localCep" class="faixa faixa--principal">
-            <div class="cartao">
-                <p class="linha__titulo">{{ estado.localCep.bairro }} · CEP {{ estado.localCep.cep }}</p>
-                <p class="linha__texto">Ainda não há dias e horários de coleta confirmados para este CEP. Se a aba Mapa mostrar um calendário do bairro, ele é ilustrativo. Os caminhões no mapa também são simulados.</p>
-                <button class="botao-claro" @click="irPara('config')">Alterar localização</button>
+        <div class="faixa faixa--principal">
+            <div v-if="estado.localCep" class="cartao calendario-endereco">
+                <p class="linha__titulo">{{ regiaoCalendario ? 'Agenda ilustrativa do bairro' : 'Agenda indisponível para este endereço' }}</p>
+                <p class="linha__texto">{{ regiaoCalendario ? 'Os dias destacados mostram a programação de demonstração de ' + estado.localCep.bairro + '. Não são horários confirmados para sua rua.' : 'Não há dias e horários cadastrados para ' + estado.localCep.bairro + '. O calendário abaixo permite consultar datas, mas não marca coletas sem uma agenda.' }}</p>
+                <button class="botao-claro" @click="irPara('config')">Alterar endereço</button>
             </div>
-        </div>
-
-        <div v-else class="faixa faixa--principal">
             <div class="mes">
                 <button class="botao-mes" aria-label="Mês anterior" @click="andarMes(-1)">‹</button>
                 <div class="mes__texto">
                     <p class="mes__nome">{{ MESES[estado.mesVisivel] }} de {{ estado.anoVisivel }}</p>
                     <p class="mes__resumo">
-                        {{ resumo.comuns }} coletas comuns · {{ resumo.seletivas }} seletivas
+                        {{ regiaoCalendario ? `${resumo.comuns} coletas comuns · ${resumo.seletivas} seletivas` : 'Sem agenda cadastrada para este CEP' }}
                     </p>
                 </div>
                 <button class="botao-mes" aria-label="Próximo mês" @click="andarMes(1)">›</button>
@@ -52,13 +49,13 @@
             </div>
         </div>
 
-        <div v-if="!estado.localCep" class="faixa faixa--lado">
+        <div class="faixa faixa--lado">
             <div>
                 <div class="detalhe">
                     <div class="detalhe__topo">
                         <div style="flex-grow: 1">
                             <p class="detalhe__titulo">{{ detalhe.titulo }}</p>
-                            <p class="detalhe__regiao">{{ regiaoAtual.nome }} · sua região</p>
+                            <p class="detalhe__regiao">{{ estado.localCep ? estado.localCep.bairro + ' · endereço da coleta' : regiaoAtual.nome + ' · sua região' }}</p>
                         </div>
                         <span class="marca" :class="detalhe.classeMarca" :style="detalhe.estiloMarca">
                             {{ detalhe.marca }}
@@ -79,10 +76,21 @@
                     </div>
 
                     <p class="detalhe__relato" v-if="detalhe.relato">{{ detalhe.relato }}</p>
+                    <p v-if="estado.localCep" class="calendario-nota">{{ regiaoCalendario ? 'Horários ilustrativos; confirme a coleta com o serviço responsável.' : 'Sem agenda cadastrada para este bairro.' }}</p>
                 </div>
             </div>
 
-            <div class="secao">
+            <div v-if="estado.localCep && regiaoCalendario" class="secao">
+                <div class="secao__cabecalho"><h2 class="secao__titulo">Próximas datas · exemplo</h2></div>
+                <div class="lista">
+                    <div class="item-coleta" v-for="item in proximas" :key="item.chave">
+                        <div class="etiqueta-data"><p class="etiqueta-data__dia">{{ item.dia }}</p><p class="etiqueta-data__data">{{ item.data }}</p></div>
+                        <div class="item-coleta__meio"><p class="item-coleta__hora">{{ item.hora }}</p><p class="item-coleta__bairro">{{ item.tipo }}</p></div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="!estado.localCep" class="secao">
                 <div class="secao__cabecalho">
                     <h2 class="secao__titulo">Últimas coletas</h2>
                 </div>
@@ -105,7 +113,17 @@ import { computed } from 'vue';
 import { MESES, MESES_MIN, DIAS_SEMANA, DIAS_CURTOS } from '../dados/listas.js';
 import { estado, regiaoAtual, irPara } from '../estado/estado.js';
 import { historicoDoDia, relatoDoDia } from '../estado/frota.js';
-import { chaveData, tipoDeColeta, janelaDe, doisDigitos } from '../nucleo/datas.js';
+import { chaveData, tipoDeColeta, janelaDe, doisDigitos, proximasColetas } from '../nucleo/datas.js';
+import { regiaoPorBairro } from '../dados/regioes.js';
+
+const regiaoCalendario = computed(() => estado.localCep ? regiaoPorBairro(estado.localCep.bairro) : estado.regiao);
+const proximas = computed(() => regiaoCalendario.value ? proximasColetas(regiaoCalendario.value, 3).map((item) => ({
+    chave: chaveData(item.data) + item.tipo,
+    dia: item.hoje ? 'HOJE' : DIAS_CURTOS[item.data.getDay()],
+    data: doisDigitos(item.data.getDate()) + '/' + doisDigitos(item.data.getMonth() + 1),
+    hora: janelaDe(regiaoCalendario.value, item.tipo),
+    tipo: item.tipo === 'seletiva' ? 'Coleta seletiva' : 'Coleta comum'
+})) : []);
 
 function andarMes(passo) {
     let mes = estado.mesVisivel + passo;
@@ -114,6 +132,7 @@ function andarMes(passo) {
     if (mes > 11) { mes = 0; ano++; }
     estado.mesVisivel = mes;
     estado.anoVisivel = ano;
+    estado.diaSelecionado = chaveData(new Date(ano, mes, 1));
 }
 
 const vazios = computed(() => new Date(estado.anoVisivel, estado.mesVisivel, 1).getDay());
@@ -125,7 +144,7 @@ const dias = computed(() => {
 
     for (let numero = 1; numero <= total; numero++) {
         const data = new Date(estado.anoVisivel, estado.mesVisivel, numero);
-        const tipo = tipoDeColeta(estado.regiao, data);
+        const tipo = regiaoCalendario.value ? tipoDeColeta(regiaoCalendario.value, data) : 'nenhum';
         const chave = chaveData(data);
         const selecionado = chave === estado.diaSelecionado;
 
@@ -148,11 +167,11 @@ const resumo = computed(() => ({
 const detalhe = computed(() => {
     const partes = estado.diaSelecionado.split('-');
     const data = new Date(Number(partes[0]), Number(partes[1]), Number(partes[2]));
-    const tipo = tipoDeColeta(estado.regiao, data);
-    const passado = historicoDoDia(estado.regiao, data);
-    const relato = relatoDoDia(data);
+    const tipo = regiaoCalendario.value ? tipoDeColeta(regiaoCalendario.value, data) : 'nenhum';
+    const passado = estado.localCep ? null : historicoDoDia(estado.regiao, data);
+    const relato = estado.localCep ? null : relatoDoDia(data);
 
-    let marca = 'Sem coleta';
+    let marca = estado.localCep && !regiaoCalendario.value ? 'Sem agenda' : 'Sem coleta';
     let classeMarca = '';
     let estiloMarca = 'background: var(--borda-suave); color: var(--texto-suave)';
     if (tipo === 'comum') {
@@ -170,8 +189,8 @@ const detalhe = computed(() => {
         ];
     } else if (tipo !== 'nenhum') {
         caixas = [
-            { rotulo: 'HORÁRIO PREVISTO', valor: janelaDe(estado.regiao, tipo) },
-            { rotulo: 'CAMINHÃO', valor: regiaoAtual.value.caminhao }
+            { rotulo: estado.localCep ? 'HORÁRIO ILUSTRATIVO' : 'HORÁRIO PREVISTO', valor: janelaDe(regiaoCalendario.value, tipo) },
+            { rotulo: estado.localCep ? 'BAIRRO' : 'CAMINHÃO', valor: estado.localCep ? estado.localCep.bairro : regiaoAtual.value.caminhao }
         ];
     }
 
